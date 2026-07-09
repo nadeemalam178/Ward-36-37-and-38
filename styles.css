@@ -288,3 +288,150 @@ tr:hover td {
   max-height: 90vh;
   overflow-y: auto;
 }
+
+/* Mobile Responsive Optimization */
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+  .mobile-only {
+    display: block !important;
+  }
+  .glass-card {
+    border-radius: 12px;
+    padding: 1rem !important;
+  }
+  td, th {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.85rem;
+  }
+  .btn-primary, .btn-secondary {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.875rem;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-only {
+    display: none !important;
+  }
+}
+
+/* OFFICIAL PDF / PRINT STYLING FOR VOTER SLIPS & REPORTS */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 15mm;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    background-image: none !important;
+    font-family: 'Inter', sans-serif !important;
+    overflow: visible !important;
+  }
+
+  /* Hide everything not marked for printing */
+  .no-print, header, nav, .filter-section, .ward-pills-strip, .pagination-controls, button, .modal-backdrop {
+    display: none !important;
+  }
+
+  /* When printing from modal slip view */
+  .modal-backdrop.printing-active {
+    position: static !important;
+    background: none !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+
+  .modal-content.printing-active {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 2px solid #000000 !important;
+    box-shadow: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border-radius: 0 !important;
+    padding: 20px !important;
+  }
+
+  .pdf-slip-box {
+    border: 2px solid #000 !important;
+    padding: 20px !important;
+    margin-bottom: 15px !important;
+    page-break-inside: avoid !important;
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .pdf-header-title {
+    font-size: 20pt !important;
+    font-weight: bold !important;
+    text-align: center !important;
+    border-bottom: 2px solid #000 !important;
+    padding-bottom: 10px !important;
+    margin-bottom: 15px !important;
+    color: #000 !important;
+  }
+
+  .pdf-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    border-bottom: 1px dotted #666 !important;
+    padding: 8px 0 !important;
+    font-size: 12pt !important;
+  }
+
+  .pdf-label {
+    font-weight: bold !important;
+    color: #333 !important;
+  }
+
+  .pdf-value {
+    font-weight: 600 !important;
+    color: #000 !important;
+  }
+
+  /* Table PDF Print Report */
+  .print-report-container {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-top: 15px !important;
+  }
+
+  th, td {
+    border: 1px solid #000 !important;
+    padding: 6px 8px !important;
+    color: #000 !important;
+    background: #fff !important;
+    font-size: 10pt !important;
+    text-align: left !important;
+  }
+
+  th {
+    background: #f0f0f0 !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+  }
+
+  .badge {
+    border: none !important;
+    background: transparent !important;
+    color: #000 !important;
+    padding: 0 !important;
+    font-weight: normal !important;
+  }
+}

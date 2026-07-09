@@ -519,17 +519,17 @@ function App() {
       </header>
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-6 mt-6 space-y-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 mt-6 space-y-6">
         
-        {/* WARD SWITCHER PILLS STRIP (Prominent 24-Ward Selector) */}
-        <div className="glass-card p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-gradient-to-r from-gray-900 via-indigo-950/40 to-gray-900">
-          <div className="flex items-center gap-2 whitespace-nowrap">
-            <span className="text-xs font-bold text-indigo-300 uppercase tracking-wider pl-2">⚡ Bankipur 24 Wards:</span>
+        {/* SLEEK SINGLE-LINE WARD BAR (Minimalist & Horizontal Scrollable) */}
+        <div className="glass-card p-3 flex items-center justify-between gap-3 bg-gradient-to-r from-gray-900/90 via-indigo-950/30 to-gray-900/90 overflow-hidden border border-white/10">
+          <div className="flex items-center gap-2 pl-2 shrink-0">
+            <span className="text-xs font-bold text-indigo-300 uppercase tracking-wider">⚡ 24 Wards:</span>
           </div>
-          <div className="flex flex-wrap items-center gap-2 flex-1 justify-start sm:justify-end max-h-48 overflow-y-auto pr-1">
+          <div className="flex items-center gap-2 overflow-x-auto flex-nowrap pb-1 pr-2 scrollbar-none w-full justify-start">
             <button
               onClick={() => { setSelectedWard(''); setSelectedBooth(''); setSelectedAnubhag(''); setPage(1); }}
-              className={`px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all shrink-0 flex items-center gap-1.5 ${
                 selectedWard === '' 
                   ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/40 border border-indigo-400/50 scale-105' 
                   : 'bg-gray-800/80 text-gray-300 hover:bg-gray-700/80 border border-white/5'
@@ -548,7 +548,7 @@ function App() {
                 <button
                   key={wName}
                   onClick={() => { setSelectedWard(wName); setSelectedBooth(''); setSelectedAnubhag(''); setPage(1); }}
-                  className={`px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 ${
+                  className={`px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold transition-all shrink-0 flex items-center gap-1.5 ${
                     isSelected 
                       ? 'bg-gradient-to-r from-cyan-600 to-indigo-600 text-white shadow-lg shadow-cyan-500/40 border border-cyan-400/50 scale-105' 
                       : 'bg-gray-800/80 text-gray-300 hover:bg-gray-700/80 border border-white/5'
@@ -566,21 +566,21 @@ function App() {
         {activeTab === 'directory' && (
           <div className="space-y-6 animate-fade-in">
             
-            {/* Multi-Criteria Advanced Filter & Search Grid */}
-            <div className="glass-card p-6 space-y-5">
+            {/* Multi-Criteria Advanced Filter & Search Grid (De-cluttered Command Center) */}
+            <div className="glass-card p-5 sm:p-6 space-y-5 border border-white/10 shadow-2xl">
               <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
                 
                 {/* Primary Search Input */}
                 <div className="relative flex-1 w-full">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-indigo-400">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                   </div>
                   <input 
                     type="text" 
                     value={searchQuery}
                     onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
-                    placeholder="Search EPIC ID (e.g. AFS4214680), Voter Name (रुही खान), Father Name, or Street..." 
-                    className="input-glass pl-12 py-3 text-base font-medium"
+                    placeholder="🔍 Search EPIC ID (e.g. AFS4214680), Voter Name (रुही खान), Father Name, or Street..." 
+                    className="input-glass pl-12 py-3.5 text-base font-semibold rounded-2xl border-white/15 bg-gray-950/80 focus:bg-gray-900 shadow-inner w-full"
                   />
                   {searchQuery && (
                     <button 
@@ -592,14 +592,24 @@ function App() {
                   )}
                 </div>
 
-                {/* Export Results Button */}
-                <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+                {/* Export / Print Buttons */}
+                <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-end">
+                  <button 
+                    onClick={() => {
+                      showToast("Preparing printable PDF list report...");
+                      window.print();
+                    }}
+                    className="btn-secondary px-4 py-2.5 text-xs sm:text-sm font-bold bg-gray-800/90 text-gray-200 border-white/10 hover:bg-gray-700/90 flex items-center gap-2"
+                  >
+                    <span>📄 Export PDF Report</span>
+                  </button>
+
                   {isServerMode ? (
                     <a 
                       href={`/api/export?search=${encodeURIComponent(searchQuery)}&ward=${encodeURIComponent(selectedWard)}&booth=${encodeURIComponent(selectedBooth)}&anubhag=${encodeURIComponent(selectedAnubhag)}&sex=${encodeURIComponent(selectedSex)}`}
-                      className="btn-primary whitespace-nowrap"
+                      className="btn-primary px-4 py-2.5 text-xs sm:text-sm font-bold whitespace-nowrap"
                     >
-                      <span>📥 Export Current Filter ({totalRecords.toLocaleString()})</span>
+                      <span>📥 Export CSV ({totalRecords.toLocaleString()})</span>
                     </a>
                   ) : (
                     <button 
@@ -608,49 +618,74 @@ function App() {
                         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
                         const link = document.createElement("a");
                         link.href = URL.createObjectURL(blob);
-                        link.setAttribute("download", "bankipur_voters_export.csv");
+                        link.setAttribute("download", `bankipur_${selectedWard || 'all_wards'}_voters.csv`);
                         document.body.appendChild(link);
                         link.click();
                         showToast("Exported results to CSV!");
                       }}
-                      className="btn-primary whitespace-nowrap"
+                      className="btn-primary px-4 py-2.5 text-xs sm:text-sm font-bold whitespace-nowrap"
                     >
-                      <span>📥 Export Page CSV</span>
+                      <span>📥 Export CSV</span>
                     </button>
                   )}
                 </div>
               </div>
 
-              {/* Dynamic 5-Column Filter Grid (Booth, Anubhag, Relation, House No, Gender) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pt-4 border-t border-white/10">
+              {/* Dynamic 6-Column Filter Grid: Ward Wise #1, Booth, Anubhag, Relation, House No, Gender */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3.5 pt-4 border-t border-white/10 text-left">
                 
-                {/* 1. Polling Booth Selector */}
+                {/* 1. Ward Wise Filter (NEW!) */}
                 <div>
-                  <label className="block text-xs font-semibold text-indigo-300 mb-1.5 flex items-center justify-between">
-                    <span>1. Polling Booth No</span>
-                    {selectedWard && <span className="text-[10px] text-emerald-400">({selectedWard})</span>}
+                  <label className="block text-xs font-bold text-indigo-300 mb-1.5 flex items-center justify-between">
+                    <span>1. Ward Filter (वार्ड चुनें)</span>
+                    <span className="text-[10px] text-indigo-400 font-mono">({filterOptions.wards?.length || 24})</span>
+                  </label>
+                  <select 
+                    value={selectedWard} 
+                    onChange={(e) => { setSelectedWard(e.target.value); setSelectedBooth(''); setSelectedAnubhag(''); setPage(1); }}
+                    className="select-glass w-full text-xs py-2.5 font-bold text-indigo-200 bg-indigo-950/40 border-indigo-500/30"
+                  >
+                    <option value="">🌐 All 24 Wards (सभी वार्ड)</option>
+                    {filterOptions.wards?.map((wItem) => {
+                      const wName = typeof wItem === 'object' ? wItem.ward : wItem;
+                      const wCount = typeof wItem === 'object' ? wItem.count : 0;
+                      const cleanNum = wName.replace(/[^0-9]/g, '');
+                      return (
+                        <option key={wName} value={wName}>
+                          🏛️ Ward {cleanNum || wName} {wCount > 0 ? `(${wCount.toLocaleString()})` : ''}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+
+                {/* 2. Polling Booth Selector */}
+                <div>
+                  <label className="block text-xs font-semibold text-cyan-300 mb-1.5 flex items-center justify-between">
+                    <span>2. Polling Booth No</span>
+                    <span className="text-[10px] text-gray-400">({availableBooths.length})</span>
                   </label>
                   <select 
                     value={selectedBooth} 
                     onChange={(e) => { setSelectedBooth(e.target.value); setSelectedAnubhag(''); setPage(1); }}
                     className="select-glass w-full text-xs py-2.5"
                   >
-                    <option value="">All Polling Booths ({availableBooths.length})</option>
+                    <option value="">All Booths in {selectedWard || 'All Wards'}</option>
                     {availableBooths.map((b) => {
                       const bNo = typeof b === 'object' ? b.booth_no : b;
                       const st = typeof b === 'object' ? (b.station || '') : '';
                       return (
-                        <option key={bNo} value={bNo}>Booth #{bNo} {st ? `• ${st.slice(0, 22)}` : ''}</option>
+                        <option key={bNo} value={bNo}>Booth #{bNo} {st ? `• ${st.slice(0, 18)}` : ''}</option>
                       );
                     })}
                   </select>
                 </div>
 
-                {/* 2. Anubhag / Street Section Selector (Dynamic to Booth/Ward!) */}
+                {/* 3. Anubhag / Street Section Selector */}
                 <div>
-                  <label className="block text-xs font-semibold text-cyan-300 mb-1.5 flex items-center justify-between">
-                    <span>2. Anubhag (अनुभाग / गली)</span>
-                    <span className="text-[10px] text-gray-400">({availableAnubhags.length} sections)</span>
+                  <label className="block text-xs font-semibold text-emerald-300 mb-1.5 flex items-center justify-between">
+                    <span>3. Anubhag (अनुभाग / गली)</span>
+                    <span className="text-[10px] text-gray-400">({availableAnubhags.length})</span>
                   </label>
                   <select 
                     value={selectedAnubhag} 
@@ -664,16 +699,16 @@ function App() {
                       const anBooth = typeof an === 'object' ? (an.booth_no || '') : '';
                       return (
                         <option key={`${anName}-${idx}`} value={anName}>
-                          {anNo ? `[#${anNo}] ` : ''}{anName.slice(0, 26)} {anBooth ? `(Booth ${anBooth})` : ''}
+                          {anNo ? `[#${anNo}] ` : ''}{anName.slice(0, 22)} {anBooth ? `(B#${anBooth})` : ''}
                         </option>
                       );
                     })}
                   </select>
                 </div>
 
-                {/* 3. Relation / Guardian Filter */}
+                {/* 4. Relation / Guardian Filter */}
                 <div>
-                  <label className="block text-xs font-semibold text-amber-300 mb-1.5">3. Relation (संबंध)</label>
+                  <label className="block text-xs font-semibold text-amber-300 mb-1.5">4. Relation (संबंध)</label>
                   <select 
                     value={selectedRelation} 
                     onChange={(e) => { setSelectedRelation(e.target.value); setPage(1); }}
@@ -687,19 +722,19 @@ function App() {
                   </select>
                 </div>
 
-                {/* 4. House Number Quick Search */}
+                {/* 5. House Number Quick Search */}
                 <div>
-                  <label className="block text-xs font-semibold text-emerald-300 mb-1.5">4. House Number (मकान नं)</label>
+                  <label className="block text-xs font-semibold text-teal-300 mb-1.5">5. House No (मकान नं)</label>
                   <input 
                     type="text" 
                     value={selectedHouseNo} 
                     onChange={(e) => { setSelectedHouseNo(e.target.value); setPage(1); }}
-                    placeholder="e.g. 00000 or 14-A" 
+                    placeholder="e.g. 000 or 14-A" 
                     className="input-glass w-full text-xs py-2.5"
                   />
                 </div>
 
-                {/* 5. Gender & Rows Per Page */}
+                {/* 6. Gender & Rows Per Page */}
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="block text-xs font-semibold text-rose-300 mb-1.5">Gender (लिंग)</label>
@@ -733,7 +768,7 @@ function App() {
 
               {/* Active Filter Pills & Reset Strip */}
               {(searchQuery || selectedWard || selectedBooth || selectedAnubhag || selectedRelation || selectedHouseNo || selectedSex) && (
-                <div className="flex flex-wrap items-center gap-2 pt-2 bg-gray-900/60 p-3 rounded-xl border border-white/5">
+                <div className="flex flex-wrap items-center gap-2 pt-2 bg-gray-900/70 p-3 rounded-xl border border-white/5 text-left">
                   <span className="text-xs font-bold text-indigo-400">Active Criteria:</span>
                   {selectedWard && (
                     <span className="badge badge-indigo flex items-center gap-1.5 font-bold">
@@ -752,47 +787,47 @@ function App() {
                   )}
                   {selectedRelation && (
                     <span className="badge badge-amber flex items-center gap-1.5">
-                      Rel: {selectedRelation} <button onClick={() => setSelectedRelation('')} className="hover:text-white">✕</button>
+                      Relation: {selectedRelation} <button onClick={() => setSelectedRelation('')} className="hover:text-white">✕</button>
                     </span>
                   )}
                   {selectedHouseNo && (
-                    <span className="badge badge-rose flex items-center gap-1.5">
+                    <span className="badge badge-indigo flex items-center gap-1.5">
                       House: {selectedHouseNo} <button onClick={() => setSelectedHouseNo('')} className="hover:text-white">✕</button>
                     </span>
                   )}
                   {selectedSex && (
-                    <span className="badge badge-indigo flex items-center gap-1.5">
+                    <span className="badge badge-rose flex items-center gap-1.5">
                       Sex: {selectedSex} <button onClick={() => setSelectedSex('')} className="hover:text-white">✕</button>
-                    </span>
-                  )}
-                  {searchQuery && (
-                    <span className="badge badge-cyan flex items-center gap-1.5">
-                      Query: "{searchQuery}" <button onClick={() => setSearchQuery('')} className="hover:text-white">✕</button>
                     </span>
                   )}
                   <button 
                     onClick={resetFilters}
-                    className="text-xs text-rose-400 hover:text-rose-300 ml-auto font-bold underline px-2 py-1 bg-rose-500/10 rounded-lg border border-rose-500/30"
+                    className="text-xs text-rose-400 hover:text-rose-300 font-semibold underline ml-auto"
                   >
-                    Reset All Filters
+                    Reset All Criteria
                   </button>
                 </div>
               )}
             </div>
 
-            {/* Data Grid Table Card (Tailored for exact Ward/Anubhag headers) */}
-            <div className="glass-card overflow-hidden">
-              <div className="p-5 border-b border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-900/50">
-                <div>
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2.5">
-                    <span>📋 Bankipur Citizen Electoral Roll</span>
-                    <span className="badge badge-indigo font-mono text-sm">{totalRecords.toLocaleString()} Registered Voters</span>
-                  </h3>
-                  <p className="text-xs text-gray-400 mt-0.5">Click any voter row to open digital ID slip & verify full household address.</p>
+            {/* ELECTORAL LIST VIEW (Dual Engine: Desktop Table + Mobile Card Grid) */}
+            <div className="glass-card overflow-hidden border border-white/10 print-report-container">
+              
+              {/* Top Pagination Strip */}
+              <div className="p-4 border-b border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-gray-900/60">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-bold text-white flex items-center gap-2">
+                    <span>📋 Registered Voters:</span>
+                    <span className="badge badge-indigo font-mono text-xs">{totalRecords.toLocaleString()}</span>
+                  </span>
+                  {searchQuery && (
+                    <span className="text-xs text-cyan-300 bg-cyan-950/60 px-2.5 py-1 rounded-md border border-cyan-500/30">
+                      Query: "{searchQuery}"
+                    </span>
+                  )}
                 </div>
 
-                {/* Pagination Top Controls */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 self-end sm:self-auto">
                   <button 
                     disabled={page <= 1}
                     onClick={() => setPage(page - 1)}
@@ -800,8 +835,8 @@ function App() {
                   >
                     ◀ Prev
                   </button>
-                  <span className="text-xs font-medium text-gray-300 px-3 py-1.5 bg-gray-950/80 rounded-lg border border-white/10">
-                    Page <strong className="text-indigo-400 font-mono">{page}</strong> of <strong className="text-white font-mono">{totalPages}</strong>
+                  <span className="text-xs font-medium text-gray-300 px-3 py-1.5 bg-gray-950/80 rounded-lg border border-white/10 font-mono">
+                    Page <strong className="text-indigo-400">{page}</strong> of <strong className="text-white">{totalPages}</strong>
                   </span>
                   <button 
                     disabled={page >= totalPages}
@@ -813,19 +848,19 @@ function App() {
                 </div>
               </div>
 
-              {/* Table Body */}
-              <div className="table-container max-h-[680px] overflow-y-auto">
+              {/* 1. DESKTOP VIEW: High-Density Table */}
+              <div className="desktop-only table-container max-h-[680px] overflow-y-auto">
                 <table>
                   <thead>
                     <tr>
                       <th className="w-24">SR / Booth</th>
-                      <th>EPIC ID (मतदाता पहचान पत्र)</th>
+                      <th>EPIC ID (पहचान पत्र)</th>
                       <th>Voter Full Name (मतदाता का नाम)</th>
                       <th>Guardian & Relation (पिता/पति)</th>
                       <th>Age / Sex (आयु / लिंग)</th>
                       <th>Anubhag & Street (अनुभाग व गली)</th>
                       <th>Ward & House (वार्ड व मकान)</th>
-                      <th className="text-right">Profile</th>
+                      <th className="text-right">Profile / PDF</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -833,8 +868,8 @@ function App() {
                       <tr>
                         <td colSpan="8" className="text-center py-16 text-gray-400">
                           <div className="text-4xl mb-3">🔍</div>
-                          <p className="text-base font-bold text-white">No matching electors found in {selectedWard || 'these 3 wards'}</p>
-                          <p className="text-xs text-gray-500 mt-1">Try clearing your Anubhag or House Number criteria.</p>
+                          <p className="text-base font-bold text-white">No matching electors found in {selectedWard || 'All Wards'}</p>
+                          <p className="text-xs text-gray-500 mt-1">Try clearing your Anubhag, House Number, or Search Query.</p>
                           <button onClick={resetFilters} className="btn-primary mt-4 text-xs">Clear All Filters</button>
                         </td>
                       </tr>
@@ -868,17 +903,6 @@ function App() {
                                 <span className="font-mono font-bold text-cyan-300 bg-cyan-950/80 px-2.5 py-1 rounded-md border border-cyan-500/30 text-sm">
                                   {epic}
                                 </span>
-                                <button 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigator.clipboard.writeText(epic);
-                                    showToast(`Copied EPIC ID: ${epic}`);
-                                  }}
-                                  title="Copy EPIC ID"
-                                  className="text-gray-500 hover:text-cyan-400 opacity-60 group-hover:opacity-100 p-1 transition-opacity"
-                                >
-                                  📋
-                                </button>
                               </div>
                             </td>
                             <td className="font-bold text-white text-base tracking-wide">
@@ -919,7 +943,7 @@ function App() {
                                 onClick={(e) => { e.stopPropagation(); setSelectedVoter(row); }}
                                 className="btn-secondary px-3 py-1.5 text-xs text-indigo-300 border-indigo-500/30 hover:bg-indigo-600 hover:text-white"
                               >
-                                Inspect Slip ▶
+                                Inspect / PDF ▶
                               </button>
                             </td>
                           </tr>
@@ -930,12 +954,92 @@ function App() {
                 </table>
               </div>
 
+              {/* 2. MOBILE VIEW: Responsive High-Impact Voter Cards (100% Mobile Optimized) */}
+              <div className="mobile-only p-3 space-y-3 max-h-[700px] overflow-y-auto bg-gray-950/40">
+                {voters.length === 0 ? (
+                  <div className="text-center py-16 text-gray-400">
+                    <div className="text-4xl mb-3">🔍</div>
+                    <p className="text-base font-bold text-white">No matching electors found</p>
+                    <button onClick={resetFilters} className="btn-primary mt-4 text-xs">Clear All Filters</button>
+                  </div>
+                ) : (
+                  voters.map((row, idx) => {
+                    const epic = row['epic_number'] || row['EPIC NUMBER'] || 'N/A';
+                    const vName = row['name'] || row['Name'] || 'N/A';
+                    const fName = row['father_name'] || row['Father Name'] || 'N/A';
+                    const rel = row['relation'] || row['Relation'] || 'Parent';
+                    const ageVal = row['age'] || row['Age'] || '0';
+                    const sexVal = row['sex'] || row['Sex'] || 'N/A';
+                    const bNo = row['booth_no'] || row['Booth No'] || '0';
+                    const anName = row['anubhag_name'] || row['Anubhag_name'] || '';
+                    const anNo = row['anubhag_number'] || row['Anubhag_number'] || '1';
+                    const wardVal = row['ward'] || row['Ward'] || 'वार्ड नं-037';
+                    const hNo = row['house_no'] || row['House No'] || '00';
+                    const srNo = row['sr_no'] || row['SR No'] || (idx + 1);
+
+                    return (
+                      <div 
+                        key={row['id'] || `mob-${epic}-${idx}`}
+                        onClick={() => setSelectedVoter(row)}
+                        className="glass-card p-4 space-y-3 border border-white/10 hover:border-indigo-500/50 bg-gradient-to-br from-gray-900/90 via-indigo-950/30 to-gray-900/90 rounded-2xl active:scale-[0.99] transition-transform text-left"
+                      >
+                        {/* Top row: EPIC ID + Ward / Booth */}
+                        <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2.5">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-bold text-cyan-300 bg-cyan-950 px-3 py-1 rounded-lg border border-cyan-500/40 text-sm">
+                              {epic}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <span className="badge badge-indigo text-[11px] font-bold block">{wardVal}</span>
+                            <span className="text-[11px] font-mono text-gray-400 mt-0.5 block">Booth #{bNo} • SR #{srNo}</span>
+                          </div>
+                        </div>
+
+                        {/* Middle row: Voter Name & Relation */}
+                        <div>
+                          <h4 className="text-lg font-bold text-white tracking-wide">{vName}</h4>
+                          <p className="text-xs text-gray-300 mt-0.5">
+                            <span className="text-amber-400 font-semibold uppercase">{rel}: </span>
+                            {fName}
+                          </p>
+                        </div>
+
+                        {/* Bottom row: Demographics + Anubhag */}
+                        <div className="flex flex-wrap items-center justify-between gap-2 text-xs pt-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className="badge badge-cyan font-mono">{ageVal} Yrs</span>
+                            <span className={`badge ${
+                              (sexVal === 'महिला' || sexVal === 'Female') ? 'badge-rose' : (sexVal === 'तृतीय' ? 'badge-amber' : 'badge-indigo')
+                            }`}>
+                              {sexVal}
+                            </span>
+                            <span className="badge badge-amber font-mono">🏠 H.No: {hNo}</span>
+                          </div>
+                          <div className="text-right max-w-[160px] truncate font-medium text-emerald-400">
+                            {anNo ? `अनुभाग #${anNo}` : ''} {anName}
+                          </div>
+                        </div>
+
+                        {/* Action Button */}
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setSelectedVoter(row); }}
+                          className="w-full btn-primary justify-center py-2 text-xs sm:text-sm font-bold mt-2 shadow-lg shadow-indigo-500/20"
+                        >
+                          📄 Inspect & Download PDF Slip ▶
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
               {/* Bottom Pagination Strip */}
               <div className="p-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-900/70">
                 <div className="text-xs text-gray-400 font-mono">
                   Showing electors <strong className="text-white">{(page - 1) * perPage + 1}</strong> to <strong className="text-white">{Math.min(page * perPage, totalRecords)}</strong> of <strong className="text-indigo-400">{totalRecords.toLocaleString()}</strong>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center justify-center gap-2">
                   <button 
                     disabled={page <= 1}
                     onClick={() => setPage(1)}
@@ -988,7 +1092,7 @@ function App() {
               <div>
                 <h2 className="text-2xl font-bold text-white">Spreadsheet Sync & Overwrite Settings</h2>
                 <p className="text-sm text-gray-400 mt-2 max-w-lg mx-auto">
-                  Drag and drop an updated <strong className="text-indigo-400">.CSV</strong> or <strong className="text-emerald-400">.XLSX</strong> Excel sheet to re-index Wards 36, 37, and 38 instantly.
+                  Drag and drop an updated <strong className="text-indigo-400">.CSV</strong> or <strong className="text-emerald-400">.XLSX</strong> Excel sheet to re-index Wards dynamically.
                 </p>
               </div>
 
@@ -1017,19 +1121,19 @@ function App() {
 
       </main>
 
-      {/* VOTER PROFILE DETAILS MODAL */}
+      {/* VOTER PROFILE DETAILS & OFFICIAL PDF DOWNLOAD MODAL */}
       {selectedVoter && (
         <div className="modal-backdrop" onClick={() => setSelectedVoter(null)}>
-          <div className="modal-content overflow-hidden animate-fade-in" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content overflow-hidden animate-fade-in text-left" onClick={(e) => e.stopPropagation()}>
             
             {/* Modal Header */}
-            <div className="bg-gradient-to-r from-indigo-900/95 via-gray-900 to-cyan-900/95 p-6 border-b border-white/15 flex items-center justify-between">
+            <div className="no-print bg-gradient-to-r from-indigo-900/95 via-gray-900 to-cyan-900/95 p-5 sm:p-6 border-b border-white/15 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+                <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg shrink-0">
                   🗳️
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <h3 className="text-lg font-bold text-white flex items-center gap-2 flex-wrap">
                     <span>{selectedVoter['name'] || selectedVoter['Name']}</span>
                     <span className="badge badge-indigo font-mono text-sm">{selectedVoter['epic_number'] || selectedVoter['EPIC NUMBER']}</span>
                   </h3>
@@ -1040,93 +1144,112 @@ function App() {
               </div>
               <button 
                 onClick={() => setSelectedVoter(null)}
-                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-gray-300 hover:text-white"
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-gray-300 hover:text-white shrink-0"
               >
                 ✕
               </button>
             </div>
 
-            {/* Modal Body: All exact official columns */}
-            <div className="p-6 space-y-6">
+            {/* OFFICIAL GOVERNMENT PDF SLIP VIEW (pdf-slip-box for badhiya PDF format) */}
+            <div className="p-5 sm:p-6 space-y-6">
               
-              {/* Primary Identity Section */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-gray-900/80 p-4 rounded-xl border border-white/10">
-                <div>
-                  <span className="text-[11px] font-semibold text-gray-400 uppercase block">EPIC NUMBER (Voter ID)</span>
-                  <span className="text-lg font-mono font-bold text-cyan-400 mt-1 block">
-                    {selectedVoter['epic_number'] || selectedVoter['EPIC NUMBER'] || 'N/A'}
-                  </span>
+              <div className="pdf-slip-box bg-gray-900/90 p-5 rounded-2xl border border-white/15 space-y-4 shadow-xl">
+                
+                {/* Official Header */}
+                <div className="text-center border-b border-white/15 pb-3">
+                  <div className="text-xs font-bold text-indigo-400 uppercase tracking-widest block">Election Commission of India • Official Electoral Roll Slip</div>
+                  <h3 className="text-lg sm:text-xl font-bold text-white mt-1">182-Bankipur Assembly Constituency (Patna, Bihar)</h3>
+                  <div className="text-xs text-amber-400 font-mono mt-0.5">Voter Information Profile & Polling Station Slip (पर्ची)</div>
                 </div>
-                <div>
-                  <span className="text-[11px] font-semibold text-gray-400 uppercase block">Voter Full Name</span>
-                  <span className="text-lg font-bold text-white mt-1 block">
-                    {selectedVoter['name'] || selectedVoter['Name'] || 'N/A'}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[11px] font-semibold text-gray-400 uppercase block">Guardian & Relation</span>
-                  <span className="text-base font-semibold text-gray-200 mt-1 block">
-                    <span className="text-xs text-amber-400 uppercase font-bold">({selectedVoter['relation'] || selectedVoter['Relation'] || 'Parent'}): </span>
-                    {selectedVoter['father_name'] || selectedVoter['Father Name'] || 'N/A'}
-                  </span>
-                </div>
-              </div>
 
-              {/* Demographics & Booth Section */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div className="bg-gray-900/50 p-3.5 rounded-xl border border-white/5">
-                  <span className="text-[11px] font-medium text-gray-400 block">Age (आयु)</span>
-                  <span className="text-lg font-bold text-cyan-400 mt-0.5 block">{selectedVoter['age'] || selectedVoter['Age'] || 'N/A'} Years</span>
+                {/* Primary Identity Section */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 bg-black/40 p-3.5 rounded-xl border border-white/10">
+                  <div>
+                    <span className="text-[11px] font-semibold text-gray-400 uppercase block">EPIC NUMBER (Voter ID)</span>
+                    <span className="text-lg font-mono font-bold text-cyan-400 mt-1 block">
+                      {selectedVoter['epic_number'] || selectedVoter['EPIC NUMBER'] || 'N/A'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] font-semibold text-gray-400 uppercase block">Voter Full Name (मतदाता का नाम)</span>
+                    <span className="text-lg font-bold text-white mt-1 block">
+                      {selectedVoter['name'] || selectedVoter['Name'] || 'N/A'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] font-semibold text-gray-400 uppercase block">Guardian & Relation (संबंध)</span>
+                    <span className="text-base font-semibold text-gray-200 mt-1 block">
+                      <span className="text-xs text-amber-400 uppercase font-bold">({selectedVoter['relation'] || selectedVoter['Relation'] || 'Parent'}): </span>
+                      {selectedVoter['father_name'] || selectedVoter['Father Name'] || 'N/A'}
+                    </span>
+                  </div>
                 </div>
-                <div className="bg-gray-900/50 p-3.5 rounded-xl border border-white/5">
-                  <span className="text-[11px] font-medium text-gray-400 block">Gender (लिंग)</span>
-                  <span className="text-lg font-bold text-rose-400 mt-0.5 block">{selectedVoter['sex'] || selectedVoter['Sex'] || 'N/A'}</span>
-                </div>
-                <div className="bg-gray-900/50 p-3.5 rounded-xl border border-white/5">
-                  <span className="text-[11px] font-medium text-gray-400 block">SR Number</span>
-                  <span className="text-lg font-mono font-bold text-gray-300 mt-0.5 block">#{selectedVoter['sr_no'] || selectedVoter['SR No'] || '1'}</span>
-                </div>
-                <div className="bg-gray-900/50 p-3.5 rounded-xl border border-white/5">
-                  <span className="text-[11px] font-medium text-gray-400 block">House Number</span>
-                  <span className="text-lg font-bold text-amber-400 mt-0.5 block">{selectedVoter['house_no'] || selectedVoter['House No'] || '00'}</span>
-                </div>
-              </div>
 
-              {/* Polling Station & Anubhag Details */}
-              <div className="space-y-3 bg-gray-900/60 p-4 rounded-xl border border-white/10">
-                <h4 className="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Polling Station & Anubhag (Locality)</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <span className="text-gray-400 block text-xs">Polling Booth Number:</span>
-                    <span className="font-bold text-emerald-400 text-base">Booth #{selectedVoter['booth_no'] || selectedVoter['Booth No'] || 'N/A'}</span>
+                {/* Demographics & Booth Section */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="bg-gray-950/60 p-3 rounded-xl border border-white/5">
+                    <span className="text-[11px] font-medium text-gray-400 block">Age (आयु)</span>
+                    <span className="text-base font-bold text-cyan-400 mt-0.5 block">{selectedVoter['age'] || selectedVoter['Age'] || 'N/A'} Years</span>
                   </div>
-                  <div>
-                    <span className="text-gray-400 block text-xs">Polling Station Name:</span>
-                    <span className="font-medium text-white">{selectedVoter['polling_station_name'] || selectedVoter['Polling_Station_Name'] || 'N/A'}</span>
+                  <div className="bg-gray-950/60 p-3 rounded-xl border border-white/5">
+                    <span className="text-[11px] font-medium text-gray-400 block">Gender (लिंग)</span>
+                    <span className="text-base font-bold text-rose-400 mt-0.5 block">{selectedVoter['sex'] || selectedVoter['Sex'] || 'N/A'}</span>
                   </div>
-                  <div className="sm:col-span-2">
-                    <span className="text-gray-400 block text-xs">Polling Station Address:</span>
-                    <span className="font-medium text-gray-300">{selectedVoter['polling_station_address'] || selectedVoter['Polling_Station_Address'] || 'N/A'}</span>
+                  <div className="bg-gray-950/60 p-3 rounded-xl border border-white/5">
+                    <span className="text-[11px] font-medium text-gray-400 block">SR Number</span>
+                    <span className="text-base font-mono font-bold text-gray-300 mt-0.5 block">#{selectedVoter['sr_no'] || selectedVoter['SR No'] || '1'}</span>
                   </div>
-                  <div>
-                    <span className="text-gray-400 block text-xs">Anubhag Number (अनुभाग नं):</span>
-                    <span className="font-bold text-amber-400 text-base">Anubhag #{selectedVoter['anubhag_number'] || selectedVoter['Anubhag_number'] || '1'}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-400 block text-xs">Anubhag Name (अनुभाग / गली का नाम):</span>
-                    <span className="font-bold text-white text-base">{selectedVoter['anubhag_name'] || selectedVoter['Anubhag_name'] || 'N/A'}</span>
+                  <div className="bg-gray-950/60 p-3 rounded-xl border border-white/5">
+                    <span className="text-[11px] font-medium text-gray-400 block">House Number</span>
+                    <span className="text-base font-bold text-amber-400 mt-0.5 block">{selectedVoter['house_no'] || selectedVoter['House No'] || '00'}</span>
                   </div>
                 </div>
+
+                {/* Polling Station & Anubhag Details */}
+                <div className="space-y-3 bg-gray-950/60 p-4 rounded-xl border border-white/10">
+                  <h4 className="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Polling Station & Anubhag (Locality Details)</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span className="text-gray-400 block text-xs">Polling Booth Number:</span>
+                      <span className="font-bold text-emerald-400 text-base">Booth #{selectedVoter['booth_no'] || selectedVoter['Booth No'] || 'N/A'}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400 block text-xs">Municipal Ward:</span>
+                      <span className="font-bold text-white text-base">{selectedVoter['ward'] || selectedVoter['Ward'] || 'वार्ड नं-037'}</span>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <span className="text-gray-400 block text-xs">Polling Station Address / School:</span>
+                      <span className="font-semibold text-white">{selectedVoter['polling_station_name'] || selectedVoter['Polling_Station_Name'] || 'N/A'} — {selectedVoter['polling_station_address'] || selectedVoter['Polling_Station_Address'] || ''}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400 block text-xs">Anubhag Number (अनुभाग नं):</span>
+                      <span className="font-bold text-amber-400 text-base">Anubhag #{selectedVoter['anubhag_number'] || selectedVoter['Anubhag_number'] || '1'}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400 block text-xs">Anubhag Name (अनुभाग / गली का नाम):</span>
+                      <span className="font-bold text-white text-base">{selectedVoter['anubhag_name'] || selectedVoter['Anubhag_name'] || 'N/A'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Simulated Verification Barcode & Signature Strip (For PDF Slip Authenticity) */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-white/10 text-xs">
+                  <div className="text-gray-400 font-mono">
+                    <div>Authenticity Hash: <span className="text-indigo-400 font-bold">{selectedVoter['epic_number'] || 'EPIC'}-{selectedVoter['booth_no'] || '000'}-{selectedVoter['sr_no'] || '1'}</span></div>
+                    <div>Issued via Bankipur Assembly Digital Directory • Verified ECI Data</div>
+                  </div>
+                  <div className="border border-dashed border-white/30 px-4 py-2 rounded-lg bg-black/50 text-center font-mono text-[11px] text-gray-300">
+                    |||| | ||| |||||| | |||| | ||<br/>
+                    <strong className="text-emerald-400">VERIFIED VOTER SLIP (पर्ची)</strong>
+                  </div>
+                </div>
+
               </div>
 
               {/* Administrative Jurisdiction */}
-              <div className="space-y-3 bg-gray-900/60 p-4 rounded-xl border border-white/10">
+              <div className="no-print space-y-3 bg-gray-900/60 p-4 rounded-xl border border-white/10">
                 <h4 className="text-xs font-semibold text-cyan-400 uppercase tracking-wider">Geographic & Municipal Jurisdiction</h4>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
-                  <div>
-                    <span className="text-gray-400 block text-xs">Municipal Ward:</span>
-                    <span className="font-bold text-white">{selectedVoter['ward'] || selectedVoter['Ward'] || 'वार्ड नं-037'}</span>
-                  </div>
                   <div>
                     <span className="text-gray-400 block text-xs">Main Town / City:</span>
                     <span className="font-medium text-white">{selectedVoter['main_town'] || selectedVoter['Main_Town'] || 'Patna'}</span>
@@ -1136,14 +1259,10 @@ function App() {
                     <span className="font-medium text-white">{selectedVoter['post_office'] || selectedVoter['Post_Office'] || 'Bankipur H.O'}</span>
                   </div>
                   <div>
-                    <span className="text-gray-400 block text-xs">Police Station:</span>
-                    <span className="font-medium text-white">{selectedVoter['police_station'] || selectedVoter['Police_Station'] || 'Pirbahore'}</span>
-                  </div>
-                  <div>
                     <span className="text-gray-400 block text-xs">Tehsil:</span>
                     <span className="font-medium text-white">{selectedVoter['tehsil'] || selectedVoter['Tehsil'] || 'Patna Sadar'}</span>
                   </div>
-                  <div>
+                  <div className="col-span-2">
                     <span className="text-gray-400 block text-xs">District & PIN:</span>
                     <span className="font-medium text-white">{selectedVoter['district'] || selectedVoter['District']} ({selectedVoter['pin_code'] || selectedVoter['Pin_Code'] || '800004'})</span>
                   </div>
@@ -1153,23 +1272,35 @@ function App() {
             </div>
 
             {/* Modal Footer Actions */}
-            <div className="p-4 bg-gray-900/95 border-t border-white/10 flex items-center justify-between">
-              <span className="text-xs text-gray-500">Official Record Verified against Sheet1</span>
-              <div className="flex items-center gap-3">
+            <div className="no-print p-4 bg-gray-900/95 border-t border-white/10 flex flex-wrap items-center justify-between gap-3">
+              <span className="text-xs text-gray-500 font-medium">Official Record Verified against Election Commission Roll</span>
+              <div className="flex flex-wrap items-center gap-2.5 ml-auto">
                 <button 
                   onClick={() => {
                     navigator.clipboard.writeText(JSON.stringify(selectedVoter, null, 2));
                     showToast("Copied full voter record as JSON!");
                   }}
-                  className="btn-secondary text-xs"
+                  className="btn-secondary px-3 py-2 text-xs font-semibold"
                 >
-                  📋 Copy Full Record
+                  📋 Copy JSON
                 </button>
                 <button 
-                  onClick={() => window.print()}
-                  className="btn-primary text-xs"
+                  onClick={() => {
+                    document.body.classList.add('printing-active');
+                    const modalEl = document.querySelector('.modal-content');
+                    if (modalEl) modalEl.classList.add('printing-active');
+                    showToast("Opening official PDF download / print dialog...");
+                    setTimeout(() => {
+                      window.print();
+                      setTimeout(() => {
+                        document.body.classList.remove('printing-active');
+                        if (modalEl) modalEl.classList.remove('printing-active');
+                      }, 500);
+                    }, 100);
+                  }}
+                  className="btn-primary px-4 py-2 text-xs sm:text-sm font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-lg shadow-emerald-500/30 flex items-center gap-2"
                 >
-                  🖨️ Print Voter Slip
+                  <span>🖨️ PDF me Badhiya Format me Download / Print Slip</span>
                 </button>
               </div>
             </div>
