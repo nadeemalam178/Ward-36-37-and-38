@@ -1,0 +1,233 @@
+{
+  "total_voters": 379153,
+  "male": 199995,
+  "female": 179134,
+  "other": 24,
+  "avg_age": 45.4,
+  "first_time_voters": 10691,
+  "total_wards": 24,
+  "total_booths": 422,
+  "wards": [
+    {
+      "ward": "वार्ड नं-015",
+      "ward_id": 15,
+      "count": 13085,
+      "file": "data/ward_15.json"
+    },
+    {
+      "ward": "वार्ड नं-016",
+      "ward_id": 16,
+      "count": 10368,
+      "file": "data/ward_16.json"
+    },
+    {
+      "ward": "वार्ड नं-017",
+      "ward_id": 17,
+      "count": 19473,
+      "file": "data/ward_17.json"
+    },
+    {
+      "ward": "वार्ड नं-018",
+      "ward_id": 18,
+      "count": 19324,
+      "file": "data/ward_18.json"
+    },
+    {
+      "ward": "वार्ड नं-019",
+      "ward_id": 19,
+      "count": 20408,
+      "file": "data/ward_19.json"
+    },
+    {
+      "ward": "वार्ड नं-021",
+      "ward_id": 21,
+      "count": 11112,
+      "file": "data/ward_21.json"
+    },
+    {
+      "ward": "वार्ड नं-022",
+      "ward_id": 22,
+      "count": 16416,
+      "file": "data/ward_22.json"
+    },
+    {
+      "ward": "वार्ड नं-023",
+      "ward_id": 23,
+      "count": 17812,
+      "file": "data/ward_23.json"
+    },
+    {
+      "ward": "वार्ड नं-024",
+      "ward_id": 24,
+      "count": 16175,
+      "file": "data/ward_24.json"
+    },
+    {
+      "ward": "वार्ड नं-025",
+      "ward_id": 25,
+      "count": 13818,
+      "file": "data/ward_25.json"
+    },
+    {
+      "ward": "वार्ड नं-026",
+      "ward_id": 26,
+      "count": 18768,
+      "file": "data/ward_26.json"
+    },
+    {
+      "ward": "वार्ड नं-027",
+      "ward_id": 27,
+      "count": 21133,
+      "file": "data/ward_27.json"
+    },
+    {
+      "ward": "वार्ड नं-028",
+      "ward_id": 28,
+      "count": 21375,
+      "file": "data/ward_28.json"
+    },
+    {
+      "ward": "वार्ड नं-029",
+      "ward_id": 29,
+      "count": 22318,
+      "file": "data/ward_29.json"
+    },
+    {
+      "ward": "वार्ड नं-030",
+      "ward_id": 30,
+      "count": 25033,
+      "file": "data/ward_30.json"
+    },
+    {
+      "ward": "वार्ड नं-031",
+      "ward_id": 31,
+      "count": 2080,
+      "file": "data/ward_31.json"
+    },
+    {
+      "ward": "वार्ड नं-035",
+      "ward_id": 35,
+      "count": 10014,
+      "file": "data/ward_35.json"
+    },
+    {
+      "ward": "वार्ड नं-036",
+      "ward_id": 36,
+      "count": 28626,
+      "file": "data/ward_36.json"
+    },
+    {
+      "ward": "वार्ड नं-037",
+      "ward_id": 37,
+      "count": 11608,
+      "file": "data/ward_37.json"
+    },
+    {
+      "ward": "वार्ड नं-038",
+      "ward_id": 38,
+      "count": 20696,
+      "file": "data/ward_38.json"
+    },
+    {
+      "ward": "वार्ड नं-039",
+      "ward_id": 39,
+      "count": 13024,
+      "file": "data/ward_39.json"
+    },
+    {
+      "ward": "वार्ड नं-040",
+      "ward_id": 40,
+      "count": 15483,
+      "file": "data/ward_40.json"
+    },
+    {
+      "ward": "वार्ड नं-041",
+      "ward_id": 41,
+      "count": 5477,
+      "file": "data/ward_41.json"
+    },
+    {
+      "ward": "वार्ड नं-042",
+      "ward_id": 42,
+      "count": 5527,
+      "file": "data/ward_42.json"
+    }
+  ],
+  "top_booths": [
+    {
+      "booth_no": "155",
+      "station": "155 - कार्यालय बिहार राज्य वित",
+      "count": 1233
+    },
+    {
+      "booth_no": "385",
+      "station": "385 - बैपटिस्ट चर्च स्कूल, भंव",
+      "count": 1213
+    },
+    {
+      "booth_no": "5",
+      "station": "5 - यूनियन बैंक ऑफ इंडिया का प",
+      "count": 1207
+    },
+    {
+      "booth_no": "417",
+      "station": "417 - संत सेवरीन हाई स्कूल कदम",
+      "count": 1189
+    },
+    {
+      "booth_no": "92",
+      "station": "92 - विमेन्स कॉलेज पटना साइंस ",
+      "count": 1174
+    },
+    {
+      "booth_no": "246",
+      "station": "246 - राजकीय मध्य विद्यालय सिप",
+      "count": 1166
+    },
+    {
+      "booth_no": "141",
+      "station": "141 - राजकीय कन्या मध्य विद्या",
+      "count": 1164
+    },
+    {
+      "booth_no": "94",
+      "station": "94 - विमेन्स कॉलेज पटना मनोरंज",
+      "count": 1154
+    },
+    {
+      "booth_no": "28",
+      "station": "28 - इंदिरा गाँधी सामुदायिक भव",
+      "count": 1148
+    },
+    {
+      "booth_no": "283",
+      "station": "283 - संत पॉल्स इंटरनेशनल स्कू",
+      "count": 1142
+    },
+    {
+      "booth_no": "249",
+      "station": "249 - लोहिया भवन, हरिश्रंद्र न",
+      "count": 1142
+    },
+    {
+      "booth_no": "290",
+      "station": "290 - बी0डी0 इवनिंग कॉलेज जक्क",
+      "count": 1138
+    },
+    {
+      "booth_no": "291",
+      "station": "291 - बी0डी0 इवनिंग कॉलेज जक्क",
+      "count": 1136
+    },
+    {
+      "booth_no": "184",
+      "station": "184 - प्राथमिक विद्यालय, पूर्व",
+      "count": 1134
+    },
+    {
+      "booth_no": "88",
+      "station": "88 - कला एवं शिल्प महाविद्यालय",
+      "count": 1133
+    }
+  ]
+}

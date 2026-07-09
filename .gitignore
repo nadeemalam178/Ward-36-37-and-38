@@ -1,4 +1,6 @@
 *.db
+voter_data.csv
+voters_compact.json
 node_modules/
 dist/
 .env
