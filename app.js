@@ -124,8 +124,8 @@ function App() {
       if (!row) return;
       const bNo = row['Booth No'] || row['booth_no'];
       if (bNo) {
-        const st = row['Polling_Station_Name'] || row['polling_station_name'] || `Booth #${bNo}`;
-        bMap.set(String(bNo), { booth_no: String(bNo), station: st });
+        const st = String(row['Polling_Station_Name'] || row['polling_station_name'] || `Booth #${bNo}`).trim();
+        bMap.set(String(bNo).trim(), { booth_no: String(bNo).trim(), station: st });
       }
     });
     const result = Array.from(bMap.values()).sort((a,b) => Number(a.booth_no) - Number(b.booth_no));
@@ -140,8 +140,8 @@ function App() {
     clientRecords.forEach(row => {
       if (!row) return;
       if (selectedBooth && String(row['Booth No'] || row['booth_no'] || '').trim() !== String(selectedBooth).trim()) return;
-      const anName = (row['Anubhag_name'] || row['anubhag_name'] || '').trim();
-      const anNo = (row['Anubhag_number'] || row['anubhag_number'] || '').trim();
+      const anName = String(row['Anubhag_name'] || row['anubhag_name'] || '').trim();
+      const anNo = String(row['Anubhag_number'] || row['anubhag_number'] || '').trim();
       if (anName || anNo) {
         const k = `${anNo}||${anName}`;
         if (!aMap.has(k)) {
@@ -369,14 +369,14 @@ function App() {
 
         validChunk.forEach(row => {
           accumulated.push(row);
-          const s = (row['sex'] || row['Sex'] || '').trim();
+          const s = String(row['sex'] || row['Sex'] || '').trim();
           if (s === 'पुरुष' || s === 'Male' || s === 'M') m++;
           else if (s === 'महिला' || s === 'Female' || s === 'F') f++;
           else o++;
 
           if (s) sexSet.add(s);
           
-          const w = (row['Ward'] || row['ward'] || '').trim();
+          const w = String(row['Ward'] || row['ward'] || '').trim();
           if (w && wardMap[w] !== undefined) {
             wardMap[w]++;
           } else if (w) {
@@ -385,19 +385,19 @@ function App() {
 
           const b = row['Booth No'] || row['booth_no'];
           if (b) {
-            const stName = row['Polling_Station_Name'] || row['polling_station_name'] || `Booth #${b}`;
-            boothSet.set(String(b), { booth_no: String(b), station: stName, ward: w });
+            const stName = String(row['Polling_Station_Name'] || row['polling_station_name'] || `Booth #${b}`).trim();
+            boothSet.set(String(b).trim(), { booth_no: String(b).trim(), station: stName, ward: w });
             const bKey = `${b}||${stName}`;
             boothCounts[bKey] = (boothCounts[bKey] || 0) + 1;
           }
 
-          const an = (row['Anubhag_name'] || row['anubhag_name'] || '').trim();
-          const anNo = (row['Anubhag_number'] || row['anubhag_number'] || '1').trim();
+          const an = String(row['Anubhag_name'] || row['anubhag_name'] || '').trim();
+          const anNo = String(row['Anubhag_number'] || row['anubhag_number'] || '1').trim();
           if (an) {
-            anubhagSet.set(an, { number: anNo, name: an, booth_no: String(b), ward: w });
+            anubhagSet.set(an, { number: anNo, name: an, booth_no: String(b).trim(), ward: w });
           }
 
-          const rel = (row['relation'] || row['Relation'] || '').trim();
+          const rel = String(row['relation'] || row['Relation'] || '').trim();
           if (rel) relationSet.add(rel);
 
           const a = parseInt(row['age'] || row['Age']) || 0;
