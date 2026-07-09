@@ -1,0 +1,31 @@
+AC No,SR No,Booth No,Name,Relation,Father Name,EPIC NUMBER,age,sex,House No,Anubhag_number,Anubhag_name,Polling_Station_Name,Polling_Station_Address,Main_Town,Ward,Post_Office,Police_Station,Tehsil,District,Pin_Code
+101,1,12,Rajesh Kumar,Son,Suresh Kumar,ABC1234561,45,Male,14-A,1,North Wing,Govt Primary School Sector 4,Sector 4 Main Road Near Park,Lakhimpur,Ward 5,Lakhimpur H.O,Kotwali,Lakhimpur,Lakhimpur Kheri,262701
+101,2,12,Sunita Devi,Wife,Rajesh Kumar,ABC1234562,41,Female,14-A,1,North Wing,Govt Primary School Sector 4,Sector 4 Main Road Near Park,Lakhimpur,Ward 5,Lakhimpur H.O,Kotwali,Lakhimpur,Lakhimpur Kheri,262701
+101,3,12,Amit Kumar,Son,Rajesh Kumar,ABC1234563,20,Male,14-A,1,North Wing,Govt Primary School Sector 4,Sector 4 Main Road Near Park,Lakhimpur,Ward 5,Lakhimpur H.O,Kotwali,Lakhimpur,Lakhimpur Kheri,262701
+101,4,12,Priya Sharma,Daughter,Rajesh Kumar,ABC1234564,19,Female,14-A,1,North Wing,Govt Primary School Sector 4,Sector 4 Main Road Near Park,Lakhimpur,Ward 5,Lakhimpur H.O,Kotwali,Lakhimpur,Lakhimpur Kheri,262701
+101,5,12,Vikram Singh,Son,Ram Singh,ABC1234565,62,Male,88-B,1,North Wing,Govt Primary School Sector 4,Sector 4 Main Road Near Park,Lakhimpur,Ward 5,Lakhimpur H.O,Kotwali,Lakhimpur,Lakhimpur Kheri,262701
+101,6,12,Kavita Singh,Wife,Vikram Singh,ABC1234566,58,Female,88-B,1,North Wing,Govt Primary School Sector 4,Sector 4 Main Road Near Park,Lakhimpur,Ward 5,Lakhimpur H.O,Kotwali,Lakhimpur,Lakhimpur Kheri,262701
+101,7,14,Deepak Verma,Son,Mohan Verma,XYZ9876541,34,Male,102-C,2,South Wing,St. Xaviers Inter College,Station Road South Enclave,Lakhimpur,Ward 8,Station Road S.O,Sadar,Lakhimpur,Lakhimpur Kheri,262701
+101,8,14,Anjali Verma,Wife,Deepak Verma,XYZ9876542,31,Female,102-C,2,South Wing,St. Xaviers Inter College,Station Road South Enclave,Lakhimpur,Ward 8,Station Road S.O,Sadar,Lakhimpur,Lakhimpur Kheri,262701
+101,9,14,Rohan Verma,Son,Deepak Verma,XYZ9876543,18,Male,102-C,2,South Wing,St. Xaviers Inter College,Station Road South Enclave,Lakhimpur,Ward 8,Station Road S.O,Sadar,Lakhimpur,Lakhimpur Kheri,262701
+101,10,14,Mohammed Tariq,Son,Abdul Rahim,XYZ9876544,53,Male,45-D,2,South Wing,St. Xaviers Inter College,Station Road South Enclave,Lakhimpur,Ward 8,Station Road S.O,Sadar,Lakhimpur,Lakhimpur Kheri,262701
+101,11,14,Zainab Fatima,Wife,Mohammed Tariq,XYZ9876545,49,Female,45-D,2,South Wing,St. Xaviers Inter College,Station Road South Enclave,Lakhimpur,Ward 8,Station Road S.O,Sadar,Lakhimpur,Lakhimpur Kheri,262701
+102,12,18,Sanjay Gupta,Son,Brijesh Gupta,KLM4567891,28,Male,22-E,1,East Block,Municipal Degree College,College Road Civil Lines,Lakhimpur,Ward 12,Civil Lines P.O,Kotwali,Lakhimpur,Lakhimpur Kheri,262701
+102,13,18,Pooja Gupta,Wife,Sanjay Gupta,KLM4567892,26,Female,22-E,1,East Block,Municipal Degree College,College Road Civil Lines,Lakhimpur,Ward 12,Civil Lines P.O,Kotwali,Lakhimpur,Lakhimpur Kheri,262701
+102,14,18,Brijesh Gupta,Son,Radheshyam Gupta,KLM4567893,71,Male,22-E,1,East Block,Municipal Degree College,College Road Civil Lines,Lakhimpur,Ward 12,Civil Lines P.O,Kotwali,Lakhimpur,Lakhimpur Kheri,262701
+102,15,18,Shakuntala Gupta,Wife,Brijesh Gupta,KLM4567894,66,Female,22-E,1,East Block,Municipal Degree College,College Road Civil Lines,Lakhimpur,Ward 12,Civil Lines P.O,Kotwali,Lakhimpur,Lakhimpur Kheri,262701
+102,16,18,Manoj Yadav,Son,Ramkhilawan Yadav,KLM4567895,39,Male,77-F,1,East Block,Municipal Degree College,College Road Civil Lines,Lakhimpur,Ward 12,Civil Lines P.O,Kotwali,Lakhimpur,Lakhimpur Kheri,262701
+102,17,18,Meena Yadav,Wife,Manoj Yadav,KLM4567896,35,Female,77-F,1,East Block,Municipal Degree College,College Road Civil Lines,Lakhimpur,Ward 12,Civil Lines P.O,Kotwali,Lakhimpur,Lakhimpur Kheri,262701
+102,18,21,Anand Tiwari,Son,Kripashankar Tiwari,NOP3216541,48,Male,310-G,3,West Enclave,Panchayat Bhawan Sector 9,Sector 9 Market Area,Gola,Ward 3,Gola Gokaran Nath,Gola Police Station,Gola,Lakhimpur Kheri,262802
+102,19,21,Sarita Tiwari,Wife,Anand Tiwari,NOP3216542,43,Female,310-G,3,West Enclave,Panchayat Bhawan Sector 9,Sector 9 Market Area,Gola,Ward 3,Gola Gokaran Nath,Gola Police Station,Gola,Lakhimpur Kheri,262802
+102,20,21,Shubham Tiwari,Son,Anand Tiwari,NOP3216543,22,Male,310-G,3,West Enclave,Panchayat Bhawan Sector 9,Sector 9 Market Area,Gola,Ward 3,Gola Gokaran Nath,Gola Police Station,Gola,Lakhimpur Kheri,262802
+102,21,21,Neha Tiwari,Daughter,Anand Tiwari,NOP3216544,20,Female,310-G,3,West Enclave,Panchayat Bhawan Sector 9,Sector 9 Market Area,Gola,Ward 3,Gola Gokaran Nath,Gola Police Station,Gola,Lakhimpur Kheri,262802
+103,22,25,Arvind Mishra,Son,Dindayal Mishra,QRS7891231,55,Male,19-H,1,Central Ward,Janta Inter College Main Hall,Near Railway Crossing,Mohammadi,Ward 1,Mohammadi P.O,Mohammadi PS,Mohammadi,Lakhimpur Kheri,262804
+103,23,25,Sushma Mishra,Wife,Arvind Mishra,QRS7891232,50,Female,19-H,1,Central Ward,Janta Inter College Main Hall,Near Railway Crossing,Mohammadi,Ward 1,Mohammadi P.O,Mohammadi PS,Mohammadi,Lakhimpur Kheri,262804
+103,24,25,Vikas Mishra,Son,Arvind Mishra,QRS7891233,25,Male,19-H,1,Central Ward,Janta Inter College Main Hall,Near Railway Crossing,Mohammadi,Ward 1,Mohammadi P.O,Mohammadi PS,Mohammadi,Lakhimpur Kheri,262804
+103,25,25,Gurpreet Singh,Son,Harbhajan Singh,QRS7891234,42,Male,54-J,2,North Colony,Khalsa Higher Secondary School,Gurudwara Road,Mohammadi,Ward 2,Mohammadi P.O,Mohammadi PS,Mohammadi,Lakhimpur Kheri,262804
+103,26,25,Simran Kaur,Wife,Gurpreet Singh,QRS7891235,38,Female,54-J,2,North Colony,Khalsa Higher Secondary School,Gurudwara Road,Mohammadi,Ward 2,Mohammadi P.O,Mohammadi PS,Mohammadi,Lakhimpur Kheri,262804
+103,27,25,Harjit Singh,Son,Gurpreet Singh,QRS7891236,18,Male,54-J,2,North Colony,Khalsa Higher Secondary School,Gurudwara Road,Mohammadi,Ward 2,Mohammadi P.O,Mohammadi PS,Mohammadi,Lakhimpur Kheri,262804
+103,28,29,Alok Pathak,Son,Srinivas Pathak,TUV6549871,65,Male,404-K,1,South End,Saraswati Shishu Mandir,Pathak Chowk,Palia,Ward 7,Palia Kalan,Palia PS,Palia,Lakhimpur Kheri,262902
+103,29,29,Geeta Pathak,Wife,Alok Pathak,TUV6549872,60,Female,404-K,1,South End,Saraswati Shishu Mandir,Pathak Chowk,Palia,Ward 7,Palia Kalan,Palia PS,Palia,Lakhimpur Kheri,262902
+103,30,29,Sourabh Pathak,Son,Alok Pathak,TUV6549873,32,Male,404-K,1,South End,Saraswati Shishu Mandir,Pathak Chowk,Palia,Ward 7,Palia Kalan,Palia PS,Palia,Lakhimpur Kheri,262902
