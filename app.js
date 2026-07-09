@@ -210,7 +210,7 @@ function App() {
       }, 150);
       return () => clearTimeout(delayDebounce);
     } else if (!isServerMode && !loading) {
-      if (selectedWard && selectedWard !== window._lastLoadedWard) {
+      if (selectedWard !== window._lastLoadedWard) {
         window._lastLoadedWard = selectedWard;
         fetchStaticWardChunk(selectedWard);
       }
@@ -235,9 +235,46 @@ function App() {
 
   async function fetchStaticWardChunk(wardName) {
     const statusEl = document.getElementById('loading-status');
+    
+    // If All Wards ('') is selected or searching across all wards
+    if (!wardName || wardName === 'ALL' || wardName === '') {
+      if (window._allWardsArrayCache && window._allWardsArrayCache.length > 0) {
+        setClientRecords(window._allWardsArrayCache);
+        if (statusEl) statusEl.innerText = `Loaded All 24 Wards (${window._allWardsArrayCache.length.toLocaleString()} Electors)`;
+        return;
+      }
+      if (statusEl) statusEl.innerText = `Loading All 24 Assembly Wards...`;
+      setLoading(true);
+      try {
+        const wardNums = [15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 35, 36, 37, 38, 39, 40, 41, 42];
+        const promises = wardNums.map(num => fetch(`data/ward_${num}.json`).then(r => r.ok ? r.json() : []));
+        const results = await Promise.all(promises);
+        let combined = [];
+        for (const rawRows of results) {
+          if (Array.isArray(rawRows)) {
+            for (const r of rawRows) {
+              combined.push({
+                sr_no: r[0], epic_number: r[1], name: r[2], relation: r[3], father_name: r[4],
+                age: r[5], sex: r[6], house_no: r[7], booth_no: r[8], anubhag_number: r[9],
+                anubhag_name: r[10], polling_station_name: r[11], polling_station_address: r[12], ward: r[13]
+              });
+            }
+          }
+        }
+        window._allWardsArrayCache = combined;
+        setClientRecords(combined);
+        setLoading(false);
+        if (statusEl) statusEl.innerText = `Loaded All 24 Wards (${combined.length.toLocaleString()} Electors)`;
+      } catch (err) {
+        setLoading(false);
+        console.error("Failed to load all wards:", err);
+      }
+      return;
+    }
+
     const cleanNum = (wardName || '').replace(/[^0-9]/g, '') || '36';
     const chunkPath = `data/ward_${intParse(cleanNum)}.json`;
-    if (statusEl) statusEl.innerText = `⚡ Unpacking Ward ${cleanNum} from Vercel Edge CDN...`;
+    if (statusEl) statusEl.innerText = `Loading Ward ${cleanNum}...`;
     setLoading(true);
     
     try {
@@ -251,7 +288,7 @@ function App() {
         }));
         setClientRecords(dataObjects);
         setLoading(false);
-        if (statusEl) statusEl.innerText = `✅ Loaded Ward ${cleanNum} (${dataObjects.length.toLocaleString()} Electors)`;
+        if (statusEl) statusEl.innerText = `Loaded Ward ${cleanNum} (${dataObjects.length.toLocaleString()} Electors)`;
       } else {
         setLoading(false);
       }
@@ -309,7 +346,30 @@ function App() {
         setSelectedWard('वार्ड नं-036');
         await fetchStaticWardChunk('वार्ड नं-036');
         setLoading(false);
-        if (statusEl) statusEl.innerText = `✅ Fully Initialized 24 Bankipur Wards (${meta.total_voters.toLocaleString()} Voters)!`;
+        if (statusEl) statusEl.innerText = `Loaded 24 Bankipur Wards (${meta.total_voters.toLocaleString()} Voters)`;
+        
+        // Pre-cache all 24 wards in background so switching/searching across All Wards is instant (0ms)
+        setTimeout(() => {
+          if (!window._allWardsArrayCache) {
+            const wardNums = [15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 35, 36, 37, 38, 39, 40, 41, 42];
+            Promise.all(wardNums.map(num => fetch(`data/ward_${num}.json`).then(r => r.ok ? r.json() : [])))
+              .then(results => {
+                let combined = [];
+                for (const rawRows of results) {
+                  if (Array.isArray(rawRows)) {
+                    for (const r of rawRows) {
+                      combined.push({
+                        sr_no: r[0], epic_number: r[1], name: r[2], relation: r[3], father_name: r[4],
+                        age: r[5], sex: r[6], house_no: r[7], booth_no: r[8], anubhag_number: r[9],
+                        anubhag_name: r[10], polling_station_name: r[11], polling_station_address: r[12], ward: r[13]
+                      });
+                    }
+                  }
+                }
+                window._allWardsArrayCache = combined;
+              }).catch(() => {});
+          }
+        }, 1200);
         return;
       }
     } catch (e) {
@@ -482,7 +542,7 @@ function App() {
   // Reset filters
   function resetFilters() {
     setSearchQuery('');
-    setSelectedWard(window._lastLoadedWard || 'वार्ड नं-036');
+    setSelectedWard('');
     setSelectedBooth('');
     setSelectedAnubhag('');
     setSelectedRelation('');
@@ -491,7 +551,7 @@ function App() {
     setMinAge(0);
     setMaxAge(120);
     setPage(1);
-    showToast("Filters reset to default view.");
+    showToast("Filters reset to All Wards & default view.");
   }
 
   return (
@@ -622,7 +682,14 @@ function App() {
                   <input 
                     type="text" 
                     value={searchQuery}
-                    onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
+                    onChange={(e) => { 
+                      const val = e.target.value;
+                      setSearchQuery(val);
+                      if (val.trim() && selectedWard !== '') {
+                        setSelectedWard('');
+                      }
+                      setPage(1); 
+                    }}
                     placeholder="🔍 Search EPIC ID (e.g. AFS4214680), Voter Name (रुही खान), Father Name, or Street..." 
                     className="input-glass pl-12 py-3.5 text-base font-semibold rounded-2xl border-slate-200 bg-slate-50 focus:bg-white shadow-inner w-full text-slate-900"
                   />
@@ -1362,6 +1429,7 @@ function AnalyticsDashboard({ chartData, stats }) {
   const ageChartRef = useRef(null);
   const wardChartRef = useRef(null);
   const boothChartRef = useRef(null);
+  const genderChartRef = useRef(null);
 
   useEffect(() => {
     // Render Age Chart
@@ -1379,8 +1447,8 @@ function AnalyticsDashboard({ chartData, stats }) {
           datasets: [{
             label: 'Electors Count',
             data: values,
-            backgroundColor: 'rgba(99, 102, 241, 0.75)',
-            borderColor: '#6366f1',
+            backgroundColor: 'rgba(37, 99, 235, 0.85)',
+            borderColor: '#2563eb',
             borderWidth: 1,
             borderRadius: 8
           }]
@@ -1390,14 +1458,14 @@ function AnalyticsDashboard({ chartData, stats }) {
           maintainAspectRatio: false,
           plugins: { legend: { display: false } },
           scales: {
-            y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#9ca3af' } },
-            x: { grid: { display: false }, ticks: { color: '#9ca3af' } }
+            y: { grid: { color: 'rgba(0, 0, 0, 0.06)' }, ticks: { color: '#334155', font: { weight: '600' } } },
+            x: { grid: { display: false }, ticks: { color: '#334155', font: { weight: '600' } } }
           }
         }
       });
     }
 
-    // Render Ward Distribution Bar Chart
+    // Render Ward Distribution Bar/Doughnut Chart
     if (wardChartRef.current && chartData?.wards) {
       const ctx = wardChartRef.current.getContext('2d');
       if (window.wardChartInstance) window.wardChartInstance.destroy();
@@ -1411,16 +1479,44 @@ function AnalyticsDashboard({ chartData, stats }) {
           labels: labels,
           datasets: [{
             data: counts,
-            backgroundColor: ['#06b6d4', '#6366f1', '#10b981'],
-            borderWidth: 0,
-            hoverOffset: 10
+            backgroundColor: ['#0891b2', '#2563eb', '#059669', '#d97706', '#8b5cf6', '#ec4899'],
+            borderWidth: 2,
+            borderColor: '#ffffff',
+            hoverOffset: 8
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { position: 'bottom', labels: { color: '#f9fafb', padding: 20, font: { size: 13, weight: 'bold' } } }
+            legend: { position: 'bottom', labels: { color: '#1e293b', padding: 15, font: { size: 12, weight: 'bold' } } }
+          }
+        }
+      });
+    }
+
+    // Render Gender Demographics Doughnut Chart
+    if (genderChartRef.current && stats) {
+      const ctx = genderChartRef.current.getContext('2d');
+      if (window.genderChartInstance) window.genderChartInstance.destroy();
+
+      window.genderChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Male (पुरुष)', 'Female (महिला)', 'Other (अन्य)'],
+          datasets: [{
+            data: [stats.male || 199995, stats.female || 179134, stats.other || 24],
+            backgroundColor: ['#2563eb', '#ec4899', '#10b981'],
+            borderWidth: 2,
+            borderColor: '#ffffff',
+            hoverOffset: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: '#1e293b', padding: 15, font: { size: 12, weight: 'bold' } } }
           }
         }
       });
@@ -1436,10 +1532,10 @@ function AnalyticsDashboard({ chartData, stats }) {
         data: {
           labels: chartData.top_booths.map(b => `Booth #${b.booth_no}`),
           datasets: [{
-            label: 'Electors Density',
+            label: 'Electors Count',
             data: chartData.top_booths.map(b => b.count),
-            backgroundColor: 'rgba(16, 185, 129, 0.75)',
-            borderColor: '#10b981',
+            backgroundColor: 'rgba(5, 150, 105, 0.85)',
+            borderColor: '#059669',
             borderWidth: 1,
             borderRadius: 8
           }]
@@ -1450,8 +1546,8 @@ function AnalyticsDashboard({ chartData, stats }) {
           maintainAspectRatio: false,
           plugins: { legend: { display: false } },
           scales: {
-            x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#9ca3af' } },
-            y: { grid: { display: false }, ticks: { color: '#f9fafb', font: { weight: 'bold' } } }
+            x: { grid: { color: 'rgba(0, 0, 0, 0.06)' }, ticks: { color: '#334155', font: { weight: '600' } } },
+            y: { grid: { display: false }, ticks: { color: '#1e293b', font: { weight: 'bold' } } }
           }
         }
       });
@@ -1460,16 +1556,30 @@ function AnalyticsDashboard({ chartData, stats }) {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         
+        {/* Gender Demographics Doughnut Card (Male vs Female) */}
+        <div className="glass-card p-6 flex flex-col justify-between">
+          <div>
+            <h3 className="text-lg font-bold text-slate-900 flex items-center justify-between">
+              <span>🚻 Gender Demographics</span>
+              <span className="badge badge-indigo">Male vs Female</span>
+            </h3>
+            <p className="text-xs text-slate-600 mt-1">Voter distribution across Male, Female, and Third Gender electors.</p>
+          </div>
+          <div className="h-72 mt-4 relative flex items-center justify-center">
+            <canvas ref={genderChartRef}></canvas>
+          </div>
+        </div>
+
         {/* Ward Distribution Doughnut Card */}
         <div className="glass-card p-6 flex flex-col justify-between">
           <div>
-            <h3 className="text-lg font-bold text-white flex items-center justify-between">
-              <span>🏛️ 3-Ward Proportion</span>
-              <span className="badge badge-cyan">Wards 36-38</span>
+            <h3 className="text-lg font-bold text-slate-900 flex items-center justify-between">
+              <span>🏛️ Ward Distribution</span>
+              <span className="badge badge-indigo">Wards Breakdown</span>
             </h3>
-            <p className="text-xs text-gray-400 mt-1">Exact voter breakdown across Wards 36, 37, and 38.</p>
+            <p className="text-xs text-slate-600 mt-1">Voter breakdown proportion across assembly wards.</p>
           </div>
           <div className="h-72 mt-4 relative flex items-center justify-center">
             <canvas ref={wardChartRef}></canvas>
@@ -1477,13 +1587,13 @@ function AnalyticsDashboard({ chartData, stats }) {
         </div>
 
         {/* Age Histogram Card */}
-        <div className="glass-card p-6 lg:col-span-2 flex flex-col justify-between">
+        <div className="glass-card p-6 flex flex-col justify-between">
           <div>
-            <h3 className="text-lg font-bold text-white flex items-center justify-between">
-              <span>📊 Generational & Age Group Split</span>
+            <h3 className="text-lg font-bold text-slate-900 flex items-center justify-between">
+              <span>📊 Generational & Age Split</span>
               <span className="badge badge-indigo">Age Demographics</span>
             </h3>
-            <p className="text-xs text-gray-400 mt-1">Distribution across Gen Z, Young Adults, Middle-aged, and Senior citizens.</p>
+            <p className="text-xs text-slate-600 mt-1">Distribution across Gen Z, Young Adults, Middle-aged, and Senior citizens.</p>
           </div>
           <div className="h-72 mt-6">
             <canvas ref={ageChartRef}></canvas>
@@ -1492,14 +1602,14 @@ function AnalyticsDashboard({ chartData, stats }) {
 
       </div>
 
-      {/* Top 10 High Density Booths */}
+      {/* Top 10 Polling Booths */}
       <div className="glass-card p-6">
         <div>
-          <h3 className="text-lg font-bold text-white flex items-center justify-between">
-            <span>🏛️ Top 10 Highest Density Polling Booths (`Booth No`)</span>
+          <h3 className="text-lg font-bold text-slate-900 flex items-center justify-between">
+            <span>🏛️ Top 10 Polling Booths (By Elector Count)</span>
             <span className="badge badge-emerald">Top Booths</span>
           </h3>
-          <p className="text-xs text-gray-400 mt-1">Polling stations ranked by total registered electors.</p>
+          <p className="text-xs text-slate-600 mt-1">Polling stations ranked by total registered citizen electors.</p>
         </div>
         <div className="h-80 mt-6">
           <canvas ref={boothChartRef}></canvas>

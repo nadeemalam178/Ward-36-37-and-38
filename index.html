@@ -1,24 +1,23 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Electoral Data Intelligence Dashboard | AC 182-Bankipur</title>
+  <title>Electoral Roll & Voter Analytics Dashboard | AC 182-Bankipur</title>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      darkMode: 'class',
       theme: {
         extend: {
           colors: {
             brand: {
-              indigo: '#6366f1',
-              cyan: '#06b6d4',
-              emerald: '#10b981',
-              dark: '#0b0f19',
-              card: '#111827'
+              indigo: '#2563eb',
+              cyan: '#0891b2',
+              emerald: '#059669',
+              dark: '#f8fafc',
+              card: '#ffffff'
             }
           }
         }
@@ -26,7 +25,7 @@
     }
   </script>
 
-  <!-- Custom Glassmorphic Styling -->
+  <!-- Custom Styling -->
   <link rel="stylesheet" href="styles.css" />
 
   <!-- React 18, Babel, Chart.js, PapaParse, SheetJS -->
@@ -37,14 +36,14 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 </head>
-<body class="bg-[#0b0f19] text-gray-100 min-h-screen">
+<body class="bg-[#f8fafc] text-slate-900 min-h-screen">
   <div id="root">
     <div class="flex items-center justify-center min-h-screen">
       <div class="text-center space-y-4 max-w-md mx-auto px-6">
-        <div class="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-        <p class="text-lg font-medium text-indigo-400">Loading Electoral Intelligence System...</p>
-        <div id="loading-status" class="text-sm text-gray-400 font-mono bg-gray-900/80 px-4 py-2.5 rounded-xl border border-white/10 shadow-lg">
-          ⚡ Initializing high-speed dataset engine...
+        <div class="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <p class="text-lg font-bold text-slate-800">Loading Electoral Roll System...</p>
+        <div id="loading-status" class="text-sm text-slate-600 font-mono bg-white px-4 py-2.5 rounded-xl border border-slate-200 shadow-sm">
+          Loading active dataset and directory...
         </div>
       </div>
     </div>

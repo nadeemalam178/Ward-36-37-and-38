@@ -1,24 +1,26 @@
-# 🗳️ Electoral Data Intelligence Dashboard | AC 182-Bankipur (Patna)
+# 🗳️ Electoral Roll & Voter Directory Dashboard | AC 182-Bankipur (Patna)
 
-A modern, high-performance web dashboard built with **React 18, Tailwind CSS, Chart.js, and a Python SQLite indexing engine** to search, filter, and analyze the **60,930+ citizen voter records** from **Assembly Constituency 182-Bankipur (Patna, Bihar)**.
+A modern, professional web dashboard built with **React 18, Tailwind CSS, Chart.js, and Python** to search, filter, and analyze the citizen voter records from **Assembly Constituency 182-Bankipur (Patna, Bihar)** across all 24 wards.
 
 ---
 
 ## ✨ Features & Capabilities
 
-- **⚡ High-Speed SQLite Indexed Engine**: Handles all `60,930` voter records with sub-millisecond search query response times (`< 5ms`), paginated directly by `server.py`.
-- **🔍 Multi-Criteria Instant Search**: Search simultaneously across **EPIC Number (`AFS4214680`)**, **Voter Full Name (`धर्मंद् कुमार`)**, **Father / Husband Name (`कृति रमन`)**, and **House Number / Address**.
-- **🎯 Advanced Filter Grid**:
-  - Filter by **Polling Booth Number (`Booth No` 1 to 125+)**
-  - Filter by **Municipal Ward (`Ward No 037`, etc.)**
-  - Filter by **Gender (`पुरुष` Male, `महिला` Female, `तृतीय/अन्य` Other)**
-  - Filter by **Age Range Slider** (18 to 100+ Years)
-- **📊 Interactive Demographic Analytics**:
+- **⚡ Electoral Roll Search Engine**: Fast search across the entire assembly roll or specific wards.
+- **🔍 Search Across All Wards**: Search across **EPIC Number (`AFS4214680`)**, **Voter Full Name (`रुही खान`)**, **Father / Husband Name**, and **Street / Address**.
+- **🎯 Filter Grid**:
+  - Filter by **Ward (`वार्ड नं-036`, `037`, etc. or All 24 Wards)**
+  - Filter by **Polling Booth (`Booth No`)**
+  - Filter by **Anubhag (`अनुभाग / गली`)**
+  - Filter by **Gender (`पुरुष` Male, `महिला` Female, `अन्य` Other)**
+  - Filter by **Age Range Slider** (18 to 120 Years)
+- **📊 Demographics Analytics & Charts**:
+  - Gender Demographics (`Male vs Female vs Other`) Doughnut Chart.
+  - Ward Distribution & Proportion Chart across Wards.
   - Generational & Age Group Bar Charts (`18-25 Gen Z`, `26-35 Young Adults`, `36-50 Middle Age`, `51-65 Senior`, `65+ Elderly`).
-  - Gender Split Doughnut Chart.
-  - Top 10 High-Density Polling Stations (`Polling_Station_Name`).
-- **🪪 Digital Voter Profile ID Card Modal**: Click any voter row to pop up an official digital inspection slip displaying their exact `AC No`, `Anubhag Details`, `House No`, `Polling Station Name & Address`, `Post Office`, `Police Station`, `Tehsil`, `District (`Patna`)`, and `PIN Code (`800004`)`.
-- **📥 Instant CSV/JSON Export & Spreadsheet Upload**: Export exact filtered results to a UTF-8 compatible `.CSV` file or drag-and-drop new `.XLSX` / `.CSV` datasets directly into the dashboard!
+  - Top 10 Polling Stations (`Polling_Station_Name`).
+- **🪪 Digital Voter Inspection Card**: Click any citizen row to view their official inspection details including `AC No`, `Anubhag`, `House No`, `Polling Station Name & Address`, `District (`Patna`)`, and `PIN Code`.
+- **📥 CSV/PDF Report Generation**: Export filtered records directly to clean CSV spreadsheets or printable PDF summary reports.
 
 ---
 
