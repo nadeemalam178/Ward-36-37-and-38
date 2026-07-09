@@ -71,6 +71,103 @@ function App() {
     setTimeout(() => setToastMessage(''), 3000);
   };
 
+  function filterClientRecords(sourceData) {
+    if (sourceData && Array.isArray(sourceData)) {
+      setClientRecords(sourceData);
+    }
+  }
+
+  const filteredRecords = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    const hQ = selectedHouseNo.toLowerCase().trim();
+    const cleanSelWard = String(selectedWard || '').replace(/[^0-9]/g, '');
+
+    return clientRecords.filter(row => {
+      if (!row) return false;
+      
+      const matchQ = !q || 
+        String(row['EPIC NUMBER'] || row['epic_number'] || '').toLowerCase().includes(q) ||
+        String(row['Name'] || row['name'] || '').toLowerCase().includes(q) ||
+        String(row['Father Name'] || row['father_name'] || '').toLowerCase().includes(q) ||
+        String(row['Polling_Station_Address'] || row['polling_station_address'] || '').toLowerCase().includes(q);
+
+      const cleanRowWard = String(row['Ward'] || row['ward'] || '').replace(/[^0-9]/g, '');
+      const matchW = !selectedWard || String(row['Ward'] || row['ward'] || '').trim() === selectedWard.trim() || (cleanSelWard && cleanRowWard === cleanSelWard);
+      
+      const matchB = !selectedBooth || String(row['Booth No'] || row['booth_no'] || '').trim() === String(selectedBooth).trim();
+      
+      const rowAnName = String(row['Anubhag_name'] || row['anubhag_name'] || '').trim().toLowerCase();
+      const rowAnNo = String(row['Anubhag_number'] || row['anubhag_number'] || '').trim();
+      const selAn = selectedAnubhag.trim().toLowerCase();
+      const matchAn = !selectedAnubhag || rowAnName === selAn || rowAnNo === selectedAnubhag.trim();
+      
+      const matchRel = !selectedRelation || String(row['relation'] || row['Relation'] || '').trim() === selectedRelation.trim();
+      const matchHNo = !hQ || String(row['House No'] || row['house_no'] || '').toLowerCase().includes(hQ);
+      
+      const rowSex = String(row['sex'] || row['Sex'] || '').trim();
+      const matchS = !selectedSex || 
+        rowSex === selectedSex ||
+        (selectedSex === 'पुरुष' && ['Male', 'M', 'पुरुष'].includes(rowSex)) ||
+        (selectedSex === 'महिला' && ['Female', 'F', 'महिला'].includes(rowSex)) ||
+        (selectedSex === 'तृतीय' && ['Trans', 'T', 'Other', 'तृतीय'].includes(rowSex));
+      
+      const a = parseInt(row['age'] || row['Age']) || 0;
+      const matchAge = (minAge <= 0 || a >= minAge) && (maxAge >= 120 || a <= maxAge);
+
+      return matchQ && matchW && matchB && matchAn && matchRel && matchHNo && matchS && matchAge;
+    });
+  }, [clientRecords, searchQuery, selectedWard, selectedBooth, selectedAnubhag, selectedRelation, selectedHouseNo, selectedSex, minAge, maxAge]);
+
+  const availableBooths = useMemo(() => {
+    const bMap = new Map();
+    clientRecords.forEach(row => {
+      if (!row) return;
+      const bNo = row['Booth No'] || row['booth_no'];
+      if (bNo) {
+        const st = row['Polling_Station_Name'] || row['polling_station_name'] || `Booth #${bNo}`;
+        bMap.set(String(bNo), { booth_no: String(bNo), station: st });
+      }
+    });
+    const result = Array.from(bMap.values()).sort((a,b) => Number(a.booth_no) - Number(b.booth_no));
+    if (result.length > 0) return result;
+    if (!filterOptions.booths) return [];
+    if (!selectedWard) return filterOptions.booths;
+    return filterOptions.booths.filter(b => typeof b === 'object' ? (b.ward === selectedWard || !b.ward) : true);
+  }, [clientRecords, filterOptions.booths, selectedWard]);
+
+  const availableAnubhags = useMemo(() => {
+    const aMap = new Map();
+    clientRecords.forEach(row => {
+      if (!row) return;
+      if (selectedBooth && String(row['Booth No'] || row['booth_no'] || '').trim() !== String(selectedBooth).trim()) return;
+      const anName = (row['Anubhag_name'] || row['anubhag_name'] || '').trim();
+      const anNo = (row['Anubhag_number'] || row['anubhag_number'] || '').trim();
+      if (anName || anNo) {
+        const k = `${anNo}||${anName}`;
+        if (!aMap.has(k)) {
+          aMap.set(k, { number: anNo, name: anName || `अनुभाग #${anNo}` });
+        }
+      }
+    });
+    const result = Array.from(aMap.values()).sort((a,b) => Number(a.number) - Number(b.number));
+    if (result.length > 0) return result;
+    if (!filterOptions.anubhags) return [];
+    return filterOptions.anubhags.filter(an => {
+      if (selectedBooth && String(an.booth_no) !== String(selectedBooth)) return false;
+      if (selectedWard && an.ward && an.ward !== selectedWard) return false;
+      return true;
+    });
+  }, [clientRecords, selectedBooth, filterOptions.anubhags, selectedWard]);
+
+  const displayedTotalRecords = isServerMode ? totalRecords : filteredRecords.length;
+  const displayedTotalPages = isServerMode ? totalPages : (Math.ceil(filteredRecords.length / perPage) || 1);
+  const displayedVoters = useMemo(() => {
+    if (isServerMode) return voters;
+    const curPg = page > displayedTotalPages ? 1 : page;
+    const offset = (curPg - 1) * perPage;
+    return filteredRecords.slice(offset, offset + perPage);
+  }, [isServerMode, voters, filteredRecords, page, perPage, displayedTotalPages]);
+
   // Initial Check & Load
   useEffect(() => {
     async function initApp() {
@@ -105,7 +202,7 @@ function App() {
     initApp();
   }, []);
 
-  // Fetch from server or filter locally when criteria change
+  // Fetch from server or static chunk when criteria change
   useEffect(() => {
     if (isServerMode && !loading) {
       const delayDebounce = setTimeout(() => {
@@ -116,19 +213,9 @@ function App() {
       if (selectedWard && selectedWard !== window._lastLoadedWard) {
         window._lastLoadedWard = selectedWard;
         fetchStaticWardChunk(selectedWard);
-      } else {
-        setTotalRecords(filteredRecords.length);
-        const totalPg = Math.ceil(filteredRecords.length / perPage) || 1;
-        setTotalPages(totalPg);
-        
-        const curPg = page > totalPg ? 1 : page;
-        if (page > totalPg) setPage(1);
-
-        const offset = (curPg - 1) * perPage;
-        setVoters(filteredRecords.slice(offset, offset + perPage));
       }
     }
-  }, [filteredRecords, searchQuery, selectedWard, selectedBooth, selectedAnubhag, selectedRelation, selectedHouseNo, selectedSex, minAge, maxAge, page, perPage, isServerMode, loading]);
+  }, [searchQuery, selectedWard, selectedBooth, selectedAnubhag, selectedRelation, selectedHouseNo, selectedSex, minAge, maxAge, page, perPage, isServerMode, loading]);
 
   async function fetchVotersServer(pg, q, ward, booth, anubhag, rel, hNo, sex, minA, maxA, pp) {
     try {
@@ -219,6 +306,7 @@ function App() {
 
         // Load initial ward (Ward 36) immediately
         window._lastLoadedWard = 'वार्ड नं-036';
+        setSelectedWard('वार्ड नं-036');
         await fetchStaticWardChunk('वार्ड नं-036');
         setLoading(false);
         if (statusEl) statusEl.innerText = `✅ Fully Initialized 24 Bankipur Wards (${meta.total_voters.toLocaleString()} Voters)!`;
@@ -390,95 +478,6 @@ function App() {
       }
     });
   }
-
-  function filterClientRecords(sourceData) {
-    if (sourceData && Array.isArray(sourceData)) {
-      setClientRecords(sourceData);
-    }
-  }
-
-  const filteredRecords = useMemo(() => {
-    const q = searchQuery.toLowerCase().trim();
-    const hQ = selectedHouseNo.toLowerCase().trim();
-    const cleanSelWard = String(selectedWard || '').replace(/[^0-9]/g, '');
-
-    return clientRecords.filter(row => {
-      if (!row) return false;
-      
-      const matchQ = !q || 
-        String(row['EPIC NUMBER'] || row['epic_number'] || '').toLowerCase().includes(q) ||
-        String(row['Name'] || row['name'] || '').toLowerCase().includes(q) ||
-        String(row['Father Name'] || row['father_name'] || '').toLowerCase().includes(q) ||
-        String(row['Polling_Station_Address'] || row['polling_station_address'] || '').toLowerCase().includes(q);
-
-      const cleanRowWard = String(row['Ward'] || row['ward'] || '').replace(/[^0-9]/g, '');
-      const matchW = !selectedWard || String(row['Ward'] || row['ward'] || '').trim() === selectedWard.trim() || (cleanSelWard && cleanRowWard === cleanSelWard);
-      
-      const matchB = !selectedBooth || String(row['Booth No'] || row['booth_no'] || '').trim() === String(selectedBooth).trim();
-      
-      const rowAnName = String(row['Anubhag_name'] || row['anubhag_name'] || '').trim().toLowerCase();
-      const rowAnNo = String(row['Anubhag_number'] || row['anubhag_number'] || '').trim();
-      const selAn = selectedAnubhag.trim().toLowerCase();
-      const matchAn = !selectedAnubhag || rowAnName === selAn || rowAnNo === selectedAnubhag.trim();
-      
-      const matchRel = !selectedRelation || String(row['relation'] || row['Relation'] || '').trim() === selectedRelation.trim();
-      const matchHNo = !hQ || String(row['House No'] || row['house_no'] || '').toLowerCase().includes(hQ);
-      
-      const rowSex = String(row['sex'] || row['Sex'] || '').trim();
-      const matchS = !selectedSex || 
-        rowSex === selectedSex ||
-        (selectedSex === 'पुरुष' && ['Male', 'M', 'पुरुष'].includes(rowSex)) ||
-        (selectedSex === 'महिला' && ['Female', 'F', 'महिला'].includes(rowSex)) ||
-        (selectedSex === 'तृतीय' && ['Trans', 'T', 'Other', 'तृतीय'].includes(rowSex));
-      
-      const a = parseInt(row['age'] || row['Age']) || 0;
-      const matchAge = (minAge <= 0 || a >= minAge) && (maxAge >= 120 || a <= maxAge);
-
-      return matchQ && matchW && matchB && matchAn && matchRel && matchHNo && matchS && matchAge;
-    });
-  }, [clientRecords, searchQuery, selectedWard, selectedBooth, selectedAnubhag, selectedRelation, selectedHouseNo, selectedSex, minAge, maxAge]);
-
-  // Filter dynamic lists based on currently selected Ward & Booth directly from active records
-  const availableBooths = useMemo(() => {
-    const bMap = new Map();
-    clientRecords.forEach(row => {
-      if (!row) return;
-      const bNo = row['Booth No'] || row['booth_no'];
-      if (bNo) {
-        const st = row['Polling_Station_Name'] || row['polling_station_name'] || `Booth #${bNo}`;
-        bMap.set(String(bNo), { booth_no: String(bNo), station: st });
-      }
-    });
-    const result = Array.from(bMap.values()).sort((a,b) => Number(a.booth_no) - Number(b.booth_no));
-    if (result.length > 0) return result;
-    if (!filterOptions.booths) return [];
-    if (!selectedWard) return filterOptions.booths;
-    return filterOptions.booths.filter(b => typeof b === 'object' ? (b.ward === selectedWard || !b.ward) : true);
-  }, [clientRecords, filterOptions.booths, selectedWard]);
-
-  const availableAnubhags = useMemo(() => {
-    const aMap = new Map();
-    clientRecords.forEach(row => {
-      if (!row) return;
-      if (selectedBooth && String(row['Booth No'] || row['booth_no'] || '').trim() !== String(selectedBooth).trim()) return;
-      const anName = (row['Anubhag_name'] || row['anubhag_name'] || '').trim();
-      const anNo = (row['Anubhag_number'] || row['anubhag_number'] || '').trim();
-      if (anName || anNo) {
-        const k = `${anNo}||${anName}`;
-        if (!aMap.has(k)) {
-          aMap.set(k, { number: anNo, name: anName || `अनुभाग #${anNo}` });
-        }
-      }
-    });
-    const result = Array.from(aMap.values()).sort((a,b) => Number(a.number) - Number(b.number));
-    if (result.length > 0) return result;
-    if (!filterOptions.anubhags) return [];
-    return filterOptions.anubhags.filter(an => {
-      if (selectedBooth && String(an.booth_no) !== String(selectedBooth)) return false;
-      if (selectedWard && an.ward && an.ward !== selectedWard) return false;
-      return true;
-    });
-  }, [clientRecords, selectedBooth, filterOptions.anubhags, selectedWard]);
 
   // Reset filters
   function resetFilters() {
@@ -654,12 +653,12 @@ function App() {
                       href={`/api/export?search=${encodeURIComponent(searchQuery)}&ward=${encodeURIComponent(selectedWard)}&booth=${encodeURIComponent(selectedBooth)}&anubhag=${encodeURIComponent(selectedAnubhag)}&sex=${encodeURIComponent(selectedSex)}`}
                       className="btn-primary px-4 py-2.5 text-xs sm:text-sm font-bold whitespace-nowrap"
                     >
-                      <span>📥 Export CSV ({totalRecords.toLocaleString()})</span>
+                      <span>📥 Export CSV ({displayedTotalRecords.toLocaleString()})</span>
                     </a>
                   ) : (
                     <button 
                       onClick={() => {
-                        const csv = Papa.unparse(voters);
+                        const csv = Papa.unparse(isServerMode ? voters : filteredRecords);
                         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
                         const link = document.createElement("a");
                         link.href = URL.createObjectURL(blob);
@@ -670,7 +669,7 @@ function App() {
                       }}
                       className="btn-primary px-4 py-2.5 text-xs sm:text-sm font-bold whitespace-nowrap"
                     >
-                      <span>📥 Export CSV</span>
+                      <span>📥 Export CSV ({displayedTotalRecords.toLocaleString()})</span>
                     </button>
                   )}
                 </div>
@@ -863,7 +862,7 @@ function App() {
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-bold text-slate-800 flex items-center gap-2">
                     <span>📋 Registered Voters:</span>
-                    <span className="badge badge-indigo font-mono text-xs">{totalRecords.toLocaleString()}</span>
+                    <span className="badge badge-indigo font-mono text-xs">{displayedTotalRecords.toLocaleString()}</span>
                   </span>
                   {searchQuery && (
                     <span className="text-xs text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-200 font-medium">
@@ -881,10 +880,10 @@ function App() {
                     ◀ Prev
                   </button>
                   <span className="text-xs font-medium text-slate-700 px-3 py-1.5 bg-white rounded-lg border border-slate-200 font-mono shadow-sm">
-                    Page <strong className="text-indigo-600">{page}</strong> of <strong className="text-slate-900">{totalPages}</strong>
+                    Page <strong className="text-indigo-600">{page}</strong> of <strong className="text-slate-900">{displayedTotalPages}</strong>
                   </span>
                   <button 
-                    disabled={page >= totalPages}
+                    disabled={page >= displayedTotalPages}
                     onClick={() => setPage(page + 1)}
                     className="btn-secondary px-3 py-1.5 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
                   >
@@ -909,7 +908,7 @@ function App() {
                     </tr>
                   </thead>
                   <tbody>
-                    {voters.length === 0 ? (
+                    {displayedVoters.length === 0 ? (
                       <tr>
                         <td colSpan="8" className="text-center py-16 text-slate-400">
                           <div className="text-4xl mb-3">🔍</div>
@@ -919,7 +918,7 @@ function App() {
                         </td>
                       </tr>
                     ) : (
-                      voters.map((row, idx) => {
+                      displayedVoters.map((row, idx) => {
                         const epic = row['epic_number'] || row['EPIC NUMBER'] || 'N/A';
                         const vName = row['name'] || row['Name'] || 'N/A';
                         const fName = row['father_name'] || row['Father Name'] || 'N/A';
@@ -1001,14 +1000,14 @@ function App() {
 
               {/* 2. MOBILE VIEW: Responsive High-Impact Voter Cards (100% Mobile Optimized) */}
               <div className="mobile-only p-3 space-y-3 max-h-[700px] overflow-y-auto bg-slate-50">
-                {voters.length === 0 ? (
+                {displayedVoters.length === 0 ? (
                   <div className="text-center py-16 text-slate-400">
                     <div className="text-4xl mb-3">🔍</div>
                     <p className="text-base font-bold text-slate-800">No matching electors found</p>
                     <button onClick={resetFilters} className="btn-primary mt-4 text-xs">Clear All Filters</button>
                   </div>
                 ) : (
-                  voters.map((row, idx) => {
+                  displayedVoters.map((row, idx) => {
                     const epic = row['epic_number'] || row['EPIC NUMBER'] || 'N/A';
                     const vName = row['name'] || row['Name'] || 'N/A';
                     const fName = row['father_name'] || row['Father Name'] || 'N/A';
@@ -1082,7 +1081,7 @@ function App() {
               {/* Bottom Pagination Strip */}
               <div className="p-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50">
                 <div className="text-xs text-slate-600 font-mono">
-                  Showing electors <strong className="text-slate-900">{(page - 1) * perPage + 1}</strong> to <strong className="text-slate-900">{Math.min(page * perPage, totalRecords)}</strong> of <strong className="text-indigo-600">{totalRecords.toLocaleString()}</strong>
+                  Showing electors <strong className="text-slate-900">{(page - 1) * perPage + 1}</strong> to <strong className="text-slate-900">{Math.min(page * perPage, displayedTotalRecords)}</strong> of <strong className="text-indigo-600">{displayedTotalRecords.toLocaleString()}</strong>
                 </div>
                 <div className="flex flex-wrap items-center justify-center gap-2">
                   <button 
@@ -1100,18 +1099,18 @@ function App() {
                     ◀ Previous
                   </button>
                   <span className="text-xs px-3 py-1 font-medium bg-indigo-50 text-indigo-700 rounded border border-indigo-200 font-mono">
-                    Page {page} / {totalPages}
+                    Page {page} / {displayedTotalPages}
                   </span>
                   <button 
-                    disabled={page >= totalPages}
+                    disabled={page >= displayedTotalPages}
                     onClick={() => setPage(page + 1)}
                     className="btn-secondary px-3 py-1 text-xs disabled:opacity-40"
                   >
                     Next ▶
                   </button>
                   <button 
-                    disabled={page >= totalPages}
-                    onClick={() => setPage(totalPages)}
+                    disabled={page >= displayedTotalPages}
+                    onClick={() => setPage(displayedTotalPages)}
                     className="btn-secondary px-2.5 py-1 text-xs disabled:opacity-40"
                   >
                     Last ▶▶
