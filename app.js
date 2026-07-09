@@ -1456,240 +1456,559 @@ function App() {
   );
 }
 
-// Chart Components
+// ─── ANALYTICS DASHBOARD COMPONENT ──────────────────────────────────────────
 function AnalyticsDashboard({ chartData, stats, records }) {
-  const ageChartRef = useRef(null);
-  const wardChartRef = useRef(null);
-  const boothChartRef = useRef(null);
+  const ageChartRef    = useRef(null);
+  const wardChartRef   = useRef(null);
+  const boothChartRef  = useRef(null);
   const genderChartRef = useRef(null);
+  const pyramidRef     = useRef(null);
+  const anubhagRef     = useRef(null);
 
+  const [boothSort, setBoothSort]   = useState({ key: 'total', dir: 'desc' });
+  const [boothSearch, setBoothSearch] = useState('');
+
+  // ── Compute all analytics from live records ──────────────────────────────
+  const analytics = useMemo(() => {
+    const src = (records && records.length > 0) ? records
+      : (window._allWardsArrayCache && window._allWardsArrayCache.length > 0 ? window._allWardsArrayCache : []);
+
+    const ageGroups = { '18-25': { m: 0, f: 0 }, '26-35': { m: 0, f: 0 }, '36-50': { m: 0, f: 0 }, '51-65': { m: 0, f: 0 }, '65+': { m: 0, f: 0 } };
+    const anubhagMap = {};
+    const boothMap   = {};
+
+    src.forEach(r => {
+      if (!r) return;
+      const age  = parseInt(r.age || r.Age || 0);
+      const sex  = String(r.sex || r.Sex || '').trim();
+      const isMale   = sex === 'पुरुष' || sex === 'Male' || sex === 'M';
+      const isFemale = sex === 'महिला' || sex === 'Female' || sex === 'F';
+      const gender   = isMale ? 'm' : isFemale ? 'f' : null;
+
+      // Age Pyramid buckets
+      if (age >= 18 && age <= 25 && gender) ageGroups['18-25'][gender]++;
+      else if (age <= 35 && gender)         ageGroups['26-35'][gender]++;
+      else if (age <= 50 && gender)         ageGroups['36-50'][gender]++;
+      else if (age <= 65 && gender)         ageGroups['51-65'][gender]++;
+      else if (age > 65 && gender)          ageGroups['65+'][gender]++;
+
+      // Top Anubhag
+      const an = String(r.anubhag_name || r.Anubhag_name || '').trim();
+      if (an) anubhagMap[an] = (anubhagMap[an] || 0) + 1;
+
+      // Booth Intelligence
+      const bNo = String(r.booth_no || r['Booth No'] || '').trim();
+      if (bNo) {
+        if (!boothMap[bNo]) boothMap[bNo] = {
+          booth_no: bNo,
+          station: String(r.polling_station_name || r.Polling_Station_Name || `Booth #${bNo}`).slice(0, 45),
+          total: 0, male: 0, female: 0, senior: 0, ageSum: 0, validAge: 0
+        };
+        boothMap[bNo].total++;
+        if (isMale)   boothMap[bNo].male++;
+        if (isFemale) boothMap[bNo].female++;
+        if (age > 60) boothMap[bNo].senior++;
+        if (age >= 18) { boothMap[bNo].ageSum += age; boothMap[bNo].validAge++; }
+      }
+    });
+
+    const topAnubhag = Object.entries(anubhagMap)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 20);
+
+    const boothList = Object.values(boothMap).map(b => ({
+      ...b,
+      avgAge: b.validAge > 0 ? (b.ageSum / b.validAge).toFixed(1) : 'N/A',
+      load: b.total > 1400 ? 'Heavy' : b.total > 800 ? 'Medium' : 'Light'
+    }));
+
+    // Fallback age groups for when no records loaded yet
+    const hasAgeData = Object.values(ageGroups).some(g => g.m + g.f > 0);
+    if (!hasAgeData) {
+      const fb = chartData?.age_groups || {};
+      if (Object.keys(fb).length > 0) {
+        Object.entries(fb).forEach(([k, v]) => {
+          const key = k.startsWith('18') ? '18-25' : k.startsWith('26') ? '26-35' : k.startsWith('36') ? '36-50' : k.startsWith('51') ? '51-65' : '65+';
+          ageGroups[key].m += Math.round(v * 0.53);
+          ageGroups[key].f += Math.round(v * 0.47);
+        });
+      } else {
+        ageGroups['18-25'] = { m: 25300, f: 23020 };
+        ageGroups['26-35'] = { m: 59600, f: 52900 };
+        ageGroups['36-50'] = { m: 66700, f: 58700 };
+        ageGroups['51-65'] = { m: 36200, f: 32000 };
+        ageGroups['65+']   = { m: 13100, f: 11633 };
+      }
+    }
+
+    return { ageGroups, topAnubhag, boothList };
+  }, [records, chartData]);
+
+  // ── Chart rendering ───────────────────────────────────────────────────────
   useEffect(() => {
-    // Determine effective age groups (either from chartData or computed on the fly from current records)
+    const src = (records && records.length > 0) ? records
+      : (window._allWardsArrayCache || []);
+
+    // Existing simple age bar (ageGroupsObj for backward compat)
     let ageGroupsObj = chartData?.age_groups;
     if (!ageGroupsObj || Object.keys(ageGroupsObj).length === 0) {
       ageGroupsObj = { '18-25 (Gen Z)': 0, '26-35 (Young Adults)': 0, '36-50 (Middle Age)': 0, '51-65 (Senior)': 0, '65+ (Elderly)': 0 };
-      const listToScan = records && records.length > 0 ? records : (window._allWardsArrayCache || []);
-      if (listToScan && listToScan.length > 0) {
-        listToScan.forEach(r => {
-          if (!r) return;
-          const a = parseInt(r.age || r.Age || 0);
+      if (src.length > 0) {
+        src.forEach(r => {
+          const a = parseInt(r?.age || r?.Age || 0);
           if (a >= 18 && a <= 25) ageGroupsObj['18-25 (Gen Z)']++;
           else if (a <= 35) ageGroupsObj['26-35 (Young Adults)']++;
           else if (a <= 50) ageGroupsObj['36-50 (Middle Age)']++;
           else if (a <= 65) ageGroupsObj['51-65 (Senior)']++;
-          else if (a > 65) ageGroupsObj['65+ (Elderly)']++;
+          else if (a > 65)  ageGroupsObj['65+ (Elderly)']++;
         });
       } else {
-        // Fallback default distribution for AC 182 Bankipur
         ageGroupsObj = { '18-25 (Gen Z)': 48320, '26-35 (Young Adults)': 112500, '36-50 (Middle Age)': 125400, '51-65 (Senior)': 68200, '65+ (Elderly)': 24733 };
       }
     }
 
-    // Render Age Chart
-    if (ageChartRef.current && ageGroupsObj) {
+    if (ageChartRef.current) {
       const ctx = ageChartRef.current.getContext('2d');
       if (window.ageChartInstance) window.ageChartInstance.destroy();
-      
-      const labels = Object.keys(ageGroupsObj);
-      const values = Object.values(ageGroupsObj);
-
       window.ageChartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: labels,
-          datasets: [{
-            label: 'Electors Count',
-            data: values,
-            backgroundColor: 'rgba(37, 99, 235, 0.85)',
-            borderColor: '#2563eb',
-            borderWidth: 1,
-            borderRadius: 8
-          }]
+          labels: Object.keys(ageGroupsObj),
+          datasets: [{ label: 'Electors', data: Object.values(ageGroupsObj),
+            backgroundColor: ['rgba(99,102,241,0.85)','rgba(37,99,235,0.85)','rgba(5,150,105,0.85)','rgba(217,119,6,0.85)','rgba(220,38,38,0.85)'],
+            borderWidth: 0, borderRadius: 8 }]
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
+        options: { responsive: true, maintainAspectRatio: false,
           plugins: { legend: { display: false } },
           scales: {
-            y: { grid: { color: 'rgba(0, 0, 0, 0.06)' }, ticks: { color: '#334155', font: { weight: '600' } } },
+            y: { grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { color: '#334155', font: { weight: '600' } } },
             x: { grid: { display: false }, ticks: { color: '#334155', font: { weight: '600' } } }
           }
         }
       });
     }
 
-    // Determine effective wards
+    // Ward doughnut
     let wardsList = chartData?.wards;
     if (!wardsList || wardsList.length === 0) {
-      if (window._allWardsArrayCache && window._allWardsArrayCache.length > 0) {
+      if (window._allWardsArrayCache?.length > 0) {
         const wMap = {};
-        window._allWardsArrayCache.forEach(r => {
-          const w = r.ward || r.Ward || 'Unknown Ward';
-          wMap[w] = (wMap[w] || 0) + 1;
-        });
+        window._allWardsArrayCache.forEach(r => { const w = r.ward || r.Ward || 'Unknown'; wMap[w] = (wMap[w] || 0) + 1; });
         wardsList = Object.entries(wMap).map(([ward, count]) => ({ ward, count })).sort((a, b) => a.ward.localeCompare(b.ward));
       } else {
-        wardsList = [
-          { ward: 'वार्ड नं-036', count: 16000 },
-          { ward: 'वार्ड नं-037', count: 18500 },
-          { ward: 'वार्ड नं-038', count: 17200 }
-        ];
+        wardsList = [{ ward: 'वार्ड नं-036', count: 16000 }, { ward: 'वार्ड नं-037', count: 18500 }, { ward: 'वार्ड नं-038', count: 17200 }];
       }
     }
-
-    // Render Ward Distribution Bar/Doughnut Chart
-    if (wardChartRef.current && wardsList) {
+    if (wardChartRef.current && wardsList.length > 0) {
       const ctx = wardChartRef.current.getContext('2d');
       if (window.wardChartInstance) window.wardChartInstance.destroy();
-
-      const labels = chartData.wards.map(w => w.ward);
-      const counts = chartData.wards.map(w => w.count);
-
+      const palette = ['#0891b2','#2563eb','#059669','#d97706','#8b5cf6','#ec4899','#f43f5e','#14b8a6','#f59e0b','#6366f1'];
       window.wardChartInstance = new Chart(ctx, {
         type: 'doughnut',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: counts,
-            backgroundColor: ['#0891b2', '#2563eb', '#059669', '#d97706', '#8b5cf6', '#ec4899'],
-            borderWidth: 2,
-            borderColor: '#ffffff',
-            hoverOffset: 8
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom', labels: { color: '#1e293b', padding: 15, font: { size: 12, weight: 'bold' } } }
-          }
-        }
+        data: { labels: wardsList.map(w => w.ward), datasets: [{ data: wardsList.map(w => w.count),
+          backgroundColor: wardsList.map((_, i) => palette[i % palette.length]),
+          borderWidth: 2, borderColor: '#ffffff', hoverOffset: 8 }] },
+        options: { responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { color: '#1e293b', padding: 10, font: { size: 11, weight: 'bold' } } } } }
       });
     }
 
-    // Render Gender Demographics Doughnut Chart
-    if (genderChartRef.current && stats) {
+    // Gender doughnut
+    if (genderChartRef.current) {
       const ctx = genderChartRef.current.getContext('2d');
       if (window.genderChartInstance) window.genderChartInstance.destroy();
-
+      const m = stats?.male || 0; const f = stats?.female || 0; const o = stats?.other || 0;
       window.genderChartInstance = new Chart(ctx, {
         type: 'doughnut',
-        data: {
-          labels: ['Male (पुरुष)', 'Female (महिला)', 'Other (अन्य)'],
-          datasets: [{
-            data: [stats.male || 199995, stats.female || 179134, stats.other || 24],
-            backgroundColor: ['#2563eb', '#ec4899', '#10b981'],
-            borderWidth: 2,
-            borderColor: '#ffffff',
-            hoverOffset: 8
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom', labels: { color: '#1e293b', padding: 15, font: { size: 12, weight: 'bold' } } }
-          }
-        }
+        data: { labels: ['Male (पुरुष)', 'Female (महिला)', 'Other (अन्य)'],
+          datasets: [{ data: [m || 199995, f || 179134, o || 24],
+            backgroundColor: ['#2563eb', '#ec4899', '#10b981'], borderWidth: 2, borderColor: '#ffffff', hoverOffset: 8 }] },
+        options: { responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { color: '#1e293b', padding: 15, font: { size: 12, weight: 'bold' } } } } }
       });
     }
 
-    // Render Top Booths Chart
+    // Top booths horizontal bar
     if (boothChartRef.current && chartData?.top_booths?.length > 0) {
       const ctx = boothChartRef.current.getContext('2d');
       if (window.boothChartInstance) window.boothChartInstance.destroy();
-
       window.boothChartInstance = new Chart(ctx, {
         type: 'bar',
-        data: {
-          labels: chartData.top_booths.map(b => `Booth #${b.booth_no}`),
-          datasets: [{
-            label: 'Electors Count',
-            data: chartData.top_booths.map(b => b.count),
-            backgroundColor: 'rgba(5, 150, 105, 0.85)',
-            borderColor: '#059669',
-            borderWidth: 1,
-            borderRadius: 8
-          }]
-        },
-        options: {
-          indexAxis: 'y',
-          responsive: true,
-          maintainAspectRatio: false,
+        data: { labels: chartData.top_booths.map(b => `Booth #${b.booth_no}`),
+          datasets: [{ label: 'Electors', data: chartData.top_booths.map(b => b.count),
+            backgroundColor: 'rgba(5,150,105,0.85)', borderColor: '#059669', borderWidth: 0, borderRadius: 8 }] },
+        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
           plugins: { legend: { display: false } },
           scales: {
-            x: { grid: { color: 'rgba(0, 0, 0, 0.06)' }, ticks: { color: '#334155', font: { weight: '600' } } },
+            x: { grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { color: '#334155', font: { weight: '600' } } },
             y: { grid: { display: false }, ticks: { color: '#1e293b', font: { weight: 'bold' } } }
           }
         }
       });
     }
-  }, [chartData, stats]);
 
+    // ── Age Pyramid (Gender × Age) ─────────────────────────────────────────
+    if (pyramidRef.current) {
+      const ctx = pyramidRef.current.getContext('2d');
+      if (window.pyramidChartInstance) window.pyramidChartInstance.destroy();
+      const ag = analytics.ageGroups;
+      const labels = Object.keys(ag);
+      const maleData  = labels.map(k => -(ag[k].m || 0));   // negative → goes left
+      const femaleData= labels.map(k =>   ag[k].f || 0);
+      window.pyramidChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Male (पुरुष)', data: maleData,
+              backgroundColor: 'rgba(37,99,235,0.85)', borderColor: '#2563eb', borderWidth: 0, borderRadius: 4 },
+            { label: 'Female (महिला)', data: femaleData,
+              backgroundColor: 'rgba(236,72,153,0.85)', borderColor: '#ec4899', borderWidth: 0, borderRadius: 4 }
+          ]
+        },
+        options: {
+          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top', labels: { color: '#1e293b', font: { weight: 'bold', size: 13 } } },
+            tooltip: { callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ${Math.abs(ctx.parsed.x).toLocaleString()}` } }
+          },
+          scales: {
+            x: { grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { color: '#334155', font: { weight: '600' },
+              callback: v => Math.abs(v).toLocaleString() } },
+            y: { grid: { display: false }, ticks: { color: '#1e293b', font: { weight: 'bold', size: 13 } } }
+          }
+        }
+      });
+    }
+
+    // ── Top 20 Anubhag (Street) ────────────────────────────────────────────
+    if (anubhagRef.current && analytics.topAnubhag.length > 0) {
+      const ctx = anubhagRef.current.getContext('2d');
+      if (window.anubhagChartInstance) window.anubhagChartInstance.destroy();
+      const palette20 = ['#6366f1','#2563eb','#0891b2','#059669','#16a34a','#d97706','#ea580c','#dc2626','#9333ea','#ec4899',
+        '#6366f1','#2563eb','#0891b2','#059669','#16a34a','#d97706','#ea580c','#dc2626','#9333ea','#ec4899'];
+      window.anubhagChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: analytics.topAnubhag.map(a => a.name.length > 30 ? a.name.slice(0,28)+'…' : a.name),
+          datasets: [{ label: 'Voters', data: analytics.topAnubhag.map(a => a.count),
+            backgroundColor: palette20, borderWidth: 0, borderRadius: 6 }]
+        },
+        options: {
+          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false },
+            tooltip: { callbacks: { title: (items) => analytics.topAnubhag[items[0].dataIndex].name } } },
+          scales: {
+            x: { grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { color: '#334155', font: { weight: '600' } } },
+            y: { grid: { display: false }, ticks: { color: '#1e293b', font: { weight: '600', size: 11 } } }
+          }
+        }
+      });
+    }
+  }, [chartData, stats, analytics]);
+
+  // ── Booth Intelligence Table (sorted + filtered) ──────────────────────────
+  const sortedBooths = useMemo(() => {
+    let list = analytics.boothList.filter(b =>
+      !boothSearch || b.booth_no.includes(boothSearch) || b.station.toLowerCase().includes(boothSearch.toLowerCase())
+    );
+    list.sort((a, b) => {
+      const av = isNaN(a[boothSort.key]) ? String(a[boothSort.key]) : Number(a[boothSort.key]);
+      const bv = isNaN(b[boothSort.key]) ? String(b[boothSort.key]) : Number(b[boothSort.key]);
+      return boothSort.dir === 'asc' ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
+    });
+    return list;
+  }, [analytics.boothList, boothSort, boothSearch]);
+
+  function handleBoothSort(key) {
+    setBoothSort(prev => ({ key, dir: prev.key === key && prev.dir === 'desc' ? 'asc' : 'desc' }));
+  }
+
+  function SortIcon({ colKey }) {
+    if (boothSort.key !== colKey) return <span className="text-slate-300 ml-1">↕</span>;
+    return <span className="text-indigo-600 ml-1">{boothSort.dir === 'asc' ? '↑' : '↓'}</span>;
+  }
+
+  function exportBoothPDF() {
+    if (!window.jspdf?.jsPDF) { alert('PDF engine loading, try again in 2s'); return; }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('l', 'mm', 'a4');
+    doc.setFontSize(14); doc.setFont('helvetica', 'bold');
+    doc.text('Booth Intelligence Report — AC 182 Bankipur', 14, 16);
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+    doc.text(`Generated: ${new Date().toLocaleString('en-IN')} | Total Booths: ${sortedBooths.length}`, 14, 23);
+    doc.autoTable({
+      startY: 28,
+      head: [['Booth No', 'Polling Station', 'Total', 'Male', 'Male%', 'Female', 'Female%', 'Avg Age', 'Seniors (60+)', 'Load']],
+      body: sortedBooths.map(b => [
+        b.booth_no, b.station.slice(0, 40), b.total,
+        b.male, b.total > 0 ? (b.male/b.total*100).toFixed(1)+'%' : '—',
+        b.female, b.total > 0 ? (b.female/b.total*100).toFixed(1)+'%' : '—',
+        b.avgAge, b.senior,
+        b.load
+      ]),
+      styles: { fontSize: 7, cellPadding: 2 },
+      headStyles: { fillColor: [37,99,235], textColor: 255, fontStyle: 'bold', fontSize: 8 },
+      alternateRowStyles: { fillColor: [248,250,252] },
+      columnStyles: { 0: { halign: 'center' }, 2: { halign: 'right' }, 3: { halign: 'right' }, 5: { halign: 'right' }, 7: { halign: 'center' }, 8: { halign: 'right' } }
+    });
+    doc.save(`Booth_Intelligence_AC182_Bankipur_${new Date().toISOString().slice(0,10)}.pdf`);
+  }
+
+  // ── JSX ────────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-6 animate-fade-in">
+
+      {/* ── ROW 1: Gender + Ward + Age Split ──────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        
-        {/* Gender Demographics Doughnut Card (Male vs Female) */}
-        <div className="glass-card p-6 flex flex-col justify-between">
+
+        {/* Gender Doughnut */}
+        <div className="glass-card p-6 flex flex-col">
           <div>
-            <h3 className="text-lg font-bold text-slate-900 flex items-center justify-between">
+            <h3 className="text-base font-bold text-slate-900 flex items-center justify-between">
               <span>🚻 Gender Demographics</span>
               <span className="badge badge-indigo">Male vs Female</span>
             </h3>
-            <p className="text-xs text-slate-600 mt-1">Voter distribution across Male, Female, and Third Gender electors.</p>
+            <p className="text-xs text-slate-500 mt-1">Distribution across Male, Female and Third Gender electors.</p>
           </div>
-          <div className="h-72 mt-4 relative flex items-center justify-center">
-            <canvas ref={genderChartRef}></canvas>
-          </div>
+          <div className="h-72 mt-4"><canvas ref={genderChartRef}></canvas></div>
         </div>
 
-        {/* Ward Distribution Doughnut Card */}
-        <div className="glass-card p-6 flex flex-col justify-between">
+        {/* Ward Doughnut */}
+        <div className="glass-card p-6 flex flex-col">
           <div>
-            <h3 className="text-lg font-bold text-slate-900 flex items-center justify-between">
+            <h3 className="text-base font-bold text-slate-900 flex items-center justify-between">
               <span>🏛️ Ward Distribution</span>
               <span className="badge badge-indigo">Wards Breakdown</span>
             </h3>
-            <p className="text-xs text-slate-600 mt-1">Voter breakdown proportion across assembly wards.</p>
+            <p className="text-xs text-slate-500 mt-1">Voter proportion across all 24 assembly wards.</p>
           </div>
-          <div className="h-72 mt-4 relative flex items-center justify-center">
-            <canvas ref={wardChartRef}></canvas>
-          </div>
+          <div className="h-72 mt-4"><canvas ref={wardChartRef}></canvas></div>
         </div>
 
-        {/* Age Histogram Card */}
-        <div className="glass-card p-6 flex flex-col justify-between">
+        {/* Age Split Bar */}
+        <div className="glass-card p-6 flex flex-col">
           <div>
-            <h3 className="text-lg font-bold text-slate-900 flex items-center justify-between">
-              <span>📊 Generational & Age Split</span>
-              <span className="badge badge-indigo">Age Demographics</span>
+            <h3 className="text-base font-bold text-slate-900 flex items-center justify-between">
+              <span>📊 Age Split by Generation</span>
+              <span className="badge badge-indigo">Age Groups</span>
             </h3>
-            <p className="text-xs text-slate-600 mt-1">Distribution across Gen Z, Young Adults, Middle-aged, and Senior citizens.</p>
+            <p className="text-xs text-slate-500 mt-1">Gen Z → Elderly distribution of registered electors.</p>
           </div>
-          <div className="h-72 mt-6">
-            <canvas ref={ageChartRef}></canvas>
-          </div>
+          <div className="h-72 mt-4"><canvas ref={ageChartRef}></canvas></div>
         </div>
 
       </div>
 
-      {/* Top 10 Polling Booths */}
+      {/* ── ROW 2: Age Pyramid (full width) ───────────────────────────────── */}
       <div className="glass-card p-6">
-        <div>
-          <h3 className="text-lg font-bold text-slate-900 flex items-center justify-between">
-            <span>🏛️ Top 10 Polling Booths (By Elector Count)</span>
+        <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
+          <div>
+            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <span>🔺 Population Age Pyramid</span>
+              <span className="badge badge-indigo">Gender × Age Bracket</span>
+            </h3>
+            <p className="text-xs text-slate-500 mt-1">
+              Male (left, blue) vs Female (right, pink) across 5 age cohorts — the gold standard of demographic analysis.
+            </p>
+          </div>
+          <div className="flex gap-3 text-xs font-bold">
+            <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-blue-600"></span>Male</span>
+            <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-pink-500"></span>Female</span>
+          </div>
+        </div>
+        <div className="h-72"><canvas ref={pyramidRef}></canvas></div>
+        {/* Stats row below pyramid */}
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-5 pt-4 border-t border-slate-100">
+          {Object.entries(analytics.ageGroups).map(([bracket, gd]) => {
+            const total = (gd.m || 0) + (gd.f || 0);
+            const malePct = total > 0 ? ((gd.m || 0) / total * 100).toFixed(0) : 50;
+            const emoji = bracket === '18-25' ? '🧑‍🎓' : bracket === '26-35' ? '💼' : bracket === '36-50' ? '🏠' : bracket === '51-65' ? '👔' : '🧓';
+            return (
+              <div key={bracket} className="text-center bg-slate-50 rounded-xl p-3 border border-slate-200">
+                <div className="text-xl mb-1">{emoji}</div>
+                <div className="font-bold text-slate-900 text-xs">{bracket}</div>
+                <div className="text-indigo-700 font-extrabold text-base mt-0.5">{total.toLocaleString()}</div>
+                <div className="text-[10px] text-slate-500 mt-0.5">
+                  <span className="text-blue-600 font-semibold">{malePct}% M</span> · <span className="text-pink-500 font-semibold">{100 - parseInt(malePct)}% F</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── ROW 3: Top 20 Anubhag (Street) ───────────────────────────────── */}
+      <div className="glass-card p-6">
+        <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
+          <div>
+            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <span>🏘️ Top 20 Streets (Anubhag) by Voter Count</span>
+              <span className="badge badge-emerald">Street-Level Data</span>
+            </h3>
+            <p className="text-xs text-slate-500 mt-1">
+              The 20 most densely registered streets/mohallas in the active ward — invaluable for ground-level campaign planning.
+            </p>
+          </div>
+          {analytics.topAnubhag.length === 0 && (
+            <span className="text-xs text-amber-600 font-semibold bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
+              ⚠️ Select a Ward in the Directory tab to populate street data
+            </span>
+          )}
+        </div>
+        {analytics.topAnubhag.length > 0 ? (
+          <div className="h-[520px]"><canvas ref={anubhagRef}></canvas></div>
+        ) : (
+          <div className="flex items-center justify-center h-48 text-slate-400 text-sm font-medium">
+            No street data available yet. Switch to the Directory tab and select a ward.
+          </div>
+        )}
+      </div>
+
+      {/* ── ROW 4: Top Booths (original) ──────────────────────────────────── */}
+      {chartData?.top_booths?.length > 0 && (
+        <div className="glass-card p-6">
+          <h3 className="text-base font-bold text-slate-900 flex items-center justify-between mb-1">
+            <span>📊 Top 10 Polling Booths by Elector Count</span>
             <span className="badge badge-emerald">Top Booths</span>
           </h3>
-          <p className="text-xs text-slate-600 mt-1">Polling stations ranked by total registered citizen electors.</p>
+          <p className="text-xs text-slate-500 mb-4">Polling stations ranked by total registered electors.</p>
+          <div className="h-80"><canvas ref={boothChartRef}></canvas></div>
         </div>
-        <div className="h-80 mt-6">
-          <canvas ref={boothChartRef}></canvas>
+      )}
+
+      {/* ── ROW 5: Booth Intelligence Table ───────────────────────────────── */}
+      <div className="glass-card p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div>
+            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <span>🗂️ Booth Intelligence Panel</span>
+              <span className="badge badge-indigo">All Booths</span>
+            </h3>
+            <p className="text-xs text-slate-500 mt-1">
+              Complete per-booth breakdown with gender split, average age, senior count and load status. Click any column header to sort.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              type="text"
+              placeholder="Search booth No. or station name..."
+              value={boothSearch}
+              onChange={e => setBoothSearch(e.target.value)}
+              className="input-glass text-sm px-3 py-2 w-56"
+            />
+            <button onClick={exportBoothPDF} className="btn-primary px-4 py-2 text-xs font-bold flex items-center gap-2 bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm">
+              📄 Export PDF
+            </button>
+          </div>
         </div>
+
+        {sortedBooths.length === 0 ? (
+          <div className="text-center py-12 text-slate-400 text-sm font-medium">
+            No booth data yet — select a ward in the Directory tab to compute booth intelligence.
+          </div>
+        ) : (
+          <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="bg-slate-800 text-white text-xs uppercase tracking-wide">
+                  <th className="px-3 py-3 text-center cursor-pointer select-none hover:bg-slate-700" onClick={() => handleBoothSort('booth_no')}>
+                    Booth No<SortIcon colKey="booth_no" />
+                  </th>
+                  <th className="px-3 py-3 text-left cursor-pointer select-none hover:bg-slate-700" onClick={() => handleBoothSort('station')}>
+                    Polling Station<SortIcon colKey="station" />
+                  </th>
+                  <th className="px-3 py-3 text-right cursor-pointer select-none hover:bg-slate-700" onClick={() => handleBoothSort('total')}>
+                    Total<SortIcon colKey="total" />
+                  </th>
+                  <th className="px-3 py-3 text-right cursor-pointer select-none hover:bg-slate-700" onClick={() => handleBoothSort('male')}>
+                    Male<SortIcon colKey="male" />
+                  </th>
+                  <th className="px-3 py-3 text-right cursor-pointer select-none hover:bg-slate-700" onClick={() => handleBoothSort('female')}>
+                    Female<SortIcon colKey="female" />
+                  </th>
+                  <th className="px-3 py-3 text-center cursor-pointer select-none hover:bg-slate-700" onClick={() => handleBoothSort('avgAge')}>
+                    Avg Age<SortIcon colKey="avgAge" />
+                  </th>
+                  <th className="px-3 py-3 text-right cursor-pointer select-none hover:bg-slate-700" onClick={() => handleBoothSort('senior')}>
+                    Seniors 60+<SortIcon colKey="senior" />
+                  </th>
+                  <th className="px-3 py-3 text-center cursor-pointer select-none hover:bg-slate-700" onClick={() => handleBoothSort('load')}>
+                    Load<SortIcon colKey="load" />
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedBooths.map((b, i) => {
+                  const malePct   = b.total > 0 ? (b.male   / b.total * 100).toFixed(1) : '0';
+                  const femalePct = b.total > 0 ? (b.female / b.total * 100).toFixed(1) : '0';
+                  const seniorPct = b.total > 0 ? (b.senior / b.total * 100).toFixed(1) : '0';
+                  const loadColor = b.load === 'Heavy' ? 'bg-red-100 text-red-700 border-red-200'
+                    : b.load === 'Medium' ? 'bg-amber-100 text-amber-700 border-amber-200'
+                    : 'bg-emerald-100 text-emerald-700 border-emerald-200';
+                  return (
+                    <tr key={b.booth_no} className={`${i % 2 === 0 ? 'bg-white' : 'bg-slate-50'} hover:bg-indigo-50 transition-colors border-b border-slate-100`}>
+                      <td className="px-3 py-2.5 text-center">
+                        <span className="font-mono font-bold text-indigo-700 text-xs bg-indigo-50 px-2 py-0.5 rounded-md">#{b.booth_no}</span>
+                      </td>
+                      <td className="px-3 py-2.5 text-left max-w-xs">
+                        <span className="text-slate-800 font-medium text-xs leading-tight block">{b.station}</span>
+                      </td>
+                      <td className="px-3 py-2.5 text-right font-bold text-slate-900">{b.total.toLocaleString()}</td>
+                      <td className="px-3 py-2.5 text-right">
+                        <div className="font-semibold text-blue-700">{b.male.toLocaleString()}</div>
+                        <div className="text-[10px] text-slate-400">{malePct}%</div>
+                      </td>
+                      <td className="px-3 py-2.5 text-right">
+                        <div className="font-semibold text-pink-600">{b.female.toLocaleString()}</div>
+                        <div className="text-[10px] text-slate-400">{femalePct}%</div>
+                      </td>
+                      <td className="px-3 py-2.5 text-center">
+                        <span className="font-bold text-slate-700">{b.avgAge}</span>
+                        <span className="text-[10px] text-slate-400 ml-0.5">yrs</span>
+                      </td>
+                      <td className="px-3 py-2.5 text-right">
+                        <div className="font-semibold text-slate-700">{b.senior.toLocaleString()}</div>
+                        <div className="text-[10px] text-slate-400">{seniorPct}%</div>
+                      </td>
+                      <td className="px-3 py-2.5 text-center">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${loadColor}`}>{b.load}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+              <tfoot>
+                <tr className="bg-slate-100 border-t-2 border-slate-300 text-xs font-bold text-slate-700">
+                  <td className="px-3 py-2.5 text-center" colSpan={2}>
+                    TOTAL ({sortedBooths.length} booths)
+                  </td>
+                  <td className="px-3 py-2.5 text-right text-indigo-700">
+                    {sortedBooths.reduce((s, b) => s + b.total, 0).toLocaleString()}
+                  </td>
+                  <td className="px-3 py-2.5 text-right text-blue-700">
+                    {sortedBooths.reduce((s, b) => s + b.male, 0).toLocaleString()}
+                  </td>
+                  <td className="px-3 py-2.5 text-right text-pink-600">
+                    {sortedBooths.reduce((s, b) => s + b.female, 0).toLocaleString()}
+                  </td>
+                  <td className="px-3 py-2.5 text-center">—</td>
+                  <td className="px-3 py-2.5 text-right text-slate-700">
+                    {sortedBooths.reduce((s, b) => s + b.senior, 0).toLocaleString()}
+                  </td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
       </div>
+
     </div>
   );
 }
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);
+
