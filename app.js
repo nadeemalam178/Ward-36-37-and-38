@@ -554,6 +554,87 @@ function App() {
     showToast("Filters reset to All Wards & default view.");
   }
 
+  // Generate clean client-side PDF table report without Ctrl+P
+  function generatePDFReport() {
+    const records = isServerMode ? voters : filteredRecords;
+    if (!records || records.length === 0) {
+      showToast("No records currently available to export!");
+      return;
+    }
+    
+    // Cap at 3,000 rows for high speed browser PDF rendering without freezing tab memory
+    const exportRows = records.slice(0, 3000);
+    showToast(`Generating PDF report with ${exportRows.length.toLocaleString()} rows from table...`);
+
+    try {
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        showToast("PDF Engine loading from CDN... please wait 2 seconds.");
+        return;
+      }
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('l', 'mm', 'a4'); // Landscape A4 for wide table
+
+      // Header Title
+      doc.setFontSize(15);
+      doc.setTextColor(15, 23, 42); // slate-900
+      doc.text("Electoral Roll & Voter Directory Table Report | AC 182-Bankipur", 14, 15);
+      
+      doc.setFontSize(9);
+      doc.setTextColor(100, 116, 139); // slate-500
+      const filterSummary = `Ward: ${selectedWard || 'All Wards'} | Booth: ${selectedBooth || 'All'} | Anubhag: ${selectedAnubhag || 'All'} | Total Matching in Table: ${records.length.toLocaleString()}${records.length > 3000 ? ' (First 3,000 exported)' : ''}`;
+      doc.text(filterSummary, 14, 21);
+
+      // Table Headers matching current screen table
+      const head = [["SR No", "Booth No", "EPIC ID", "Voter Full Name", "Guardian & Relation", "Age / Sex", "Anubhag & Street", "Ward & House"]];
+      
+      const body = exportRows.map((r, idx) => [
+        String(r.sr_no || r.SR_NO || r['SR No'] || idx + 1),
+        String(r.booth_no || r['Booth No'] || '-'),
+        String(r.epic_number || r['EPIC NUMBER'] || r.epic_id || '-'),
+        String(r.name || r['Name'] || '-'),
+        `${r.father_name || r['Father Name'] || '-'} (${r.relation || r['Relation'] || 'Parent'})`,
+        `${r.age || r['Age'] || '-'} / ${r.sex || r['Sex'] || '-'}`,
+        `${r.anubhag_number || r['Anubhag_number'] || ''} - ${r.anubhag_name || r['Anubhag_name'] || '-'}`,
+        `${r.ward || r['Ward'] || '-'}, H.No: ${r.house_no || r['House No'] || '-'}`
+      ]);
+
+      doc.autoTable({
+        head: head,
+        body: body,
+        startY: 25,
+        styles: {
+          font: 'helvetica',
+          fontSize: 8,
+          cellPadding: 2,
+          textColor: [30, 41, 59],
+          overflow: 'linebreak'
+        },
+        headStyles: {
+          fillColor: [37, 99, 235], // brand indigo
+          textColor: [255, 255, 255],
+          fontStyle: 'bold'
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252] // slate-50
+        },
+        margin: { top: 25, left: 14, right: 14, bottom: 14 },
+        didDrawPage: function(data) {
+          doc.setFontSize(8);
+          doc.setTextColor(148, 163, 184);
+          const pageCount = doc.internal.getNumberOfPages();
+          doc.text(`Page ${data.pageNumber} of ${pageCount} | Generated on ${new Date().toLocaleDateString()}`, 14, doc.internal.pageSize.height - 8);
+        }
+      });
+
+      const cleanWard = selectedWard ? String(selectedWard).replace(/[^0-9a-zA-Z]/g, '_') : 'All_Wards';
+      doc.save(`Voter_Table_Report_${cleanWard}_${new Date().toISOString().slice(0,10)}.pdf`);
+      showToast("✅ PDF Table Report downloaded successfully!");
+    } catch (err) {
+      console.error("PDF generation error:", err);
+      showToast("❌ Could not generate PDF. Please try again in a moment.");
+    }
+  }
+
   return (
     <div className="min-h-screen pb-16">
       {/* Toast Notification */}
@@ -706,10 +787,7 @@ function App() {
                 {/* Export / Print Buttons */}
                 <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-end">
                   <button 
-                    onClick={() => {
-                      showToast("Preparing printable PDF list report...");
-                      window.print();
-                    }}
+                    onClick={generatePDFReport}
                     className="btn-secondary px-4 py-2.5 text-xs sm:text-sm font-bold bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200 flex items-center gap-2"
                   >
                     <span>📄 Export PDF Report</span>
