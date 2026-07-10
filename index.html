@@ -9,6 +9,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           colors: {
@@ -19,6 +20,10 @@
               dark: '#f8fafc',
               card: '#ffffff'
             }
+          },
+          animation: {
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'bounce-slow': 'bounce 2s infinite'
           }
         }
       }
@@ -27,6 +32,9 @@
 
   <!-- Custom Styling -->
   <link rel="stylesheet" href="styles.css" />
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 
   <!-- React 18, Babel, Chart.js, PapaParse, SheetJS -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -38,7 +46,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 </head>
-<body class="bg-[#f8fafc] text-slate-900 min-h-screen">
+<body class="bg-[#f8fafc] dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-300">
   <div id="root">
     <div class="flex items-center justify-center min-h-screen">
       <div class="text-center space-y-4 max-w-md mx-auto px-6">

@@ -19,6 +19,17 @@
   --transition-smooth: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.dark {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --card-bg: #1e293b;
+  --card-border: #334155;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --text-subtle: #64748b;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -31,6 +42,7 @@ body {
   color: var(--text-main);
   min-height: 100vh;
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Custom Scrollbar */
@@ -41,12 +53,21 @@ body {
 ::-webkit-scrollbar-track {
   background: #f1f5f9;
 }
+.dark ::-webkit-scrollbar-track {
+  background: #1e293b;
+}
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
 }
 
 /* White Theme Cards */
@@ -63,10 +84,21 @@ body {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
+.dark .glass-card:hover {
+  border-color: #475569;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+}
+
 .glass-header {
   background: #ffffff;
   border-bottom: 1px solid var(--card-border);
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+.dark .glass-header {
+  background: #1e293b;
+  border-bottom: 1px solid #334155;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
 }
 
 /* Clean Button Styles */
@@ -124,6 +156,12 @@ body {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
+.dark .input-glass {
+  background: #1e293b;
+  border-color: #475569;
+  color: #f1f5f9;
+}
+
 .input-glass:focus {
   outline: none;
   border-color: var(--accent-indigo);
@@ -140,6 +178,12 @@ body {
   transition: var(--transition-fast);
   cursor: pointer;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.dark .select-glass {
+  background: #1e293b;
+  border-color: #475569;
+  color: #f1f5f9;
 }
 
 .select-glass:focus {
@@ -177,6 +221,12 @@ th {
   z-index: 10;
 }
 
+.dark th {
+  background: #334155;
+  color: #f1f5f9;
+  border-bottom: 2px solid #475569;
+}
+
 td {
   padding: 0.875rem 1rem;
   border-bottom: 1px solid #f1f5f9;
@@ -185,8 +235,17 @@ td {
   transition: var(--transition-fast);
 }
 
+.dark td {
+  border-bottom: 1px solid #334155;
+  color: #e2e8f0;
+}
+
 tr:hover td {
   background: #f8fafc;
+}
+
+.dark tr:hover td {
+  background: #334155;
 }
 
 /* White Theme Badges */
@@ -270,6 +329,12 @@ tr:hover td {
   color: #0f172a;
 }
 
+.dark .modal-content {
+  background: #1e293b;
+  border-color: #475569;
+  color: #f1f5f9;
+}
+
 /* Mobile Responsive Optimization */
 @media (max-width: 768px) {
   .desktop-only {
@@ -311,6 +376,13 @@ tr:hover td {
     background-image: none !important;
     font-family: 'Inter', sans-serif !important;
     overflow: visible !important;
+  }
+
+  .dark {
+    --bg-primary: #ffffff !important;
+    --bg-secondary: #ffffff !important;
+    --card-bg: #ffffff !important;
+    --text-main: #000000 !important;
   }
 
   .no-print, header, nav, .filter-section, .ward-pills-strip, .pagination-controls, button, .modal-backdrop {
